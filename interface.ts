@@ -1,0 +1,16 @@
+export interface TripDataRequest {
+    departureCity: string,
+    destination?: string,
+    localTravel: boolean,
+    suggestDestination: boolean,
+    duration?: string,
+    departureDate?: string,
+    returnDate?: string,
+    timeOfYear?: string,
+    vacationStyle?: string[],
+    numberAdults?: number,
+    numberKids?: number,
+    luxuryLevel?: number,
+    budget?: number,
+    currency: string,
+}
