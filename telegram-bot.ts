@@ -172,32 +172,126 @@ function askDestination(chatId: number): void {
 
 // Function to ask for trip duration
 function askDuration(chatId: number): void {
-  bot.sendMessage(chatId, '2️⃣ What is your *trip duration* (number of days)?', { parse_mode: 'Markdown' })
-    .then(message => {
-      const session = userSessions.get(chatId);
-      if (session) {
-        session.messageIds.push(message.message_id);
-      }
-    });
+  // Create inline keyboard with buttons 1-14
+  const inlineKeyboard = {
+    inline_keyboard: [
+      [
+        { text: '1', callback_data: 'duration_1' },
+        { text: '2', callback_data: 'duration_2' },
+        { text: '3', callback_data: 'duration_3' },
+        { text: '4', callback_data: 'duration_4' },
+        { text: '5', callback_data: 'duration_5' }
+      ],
+      [
+        { text: '6', callback_data: 'duration_6' },
+        { text: '7', callback_data: 'duration_7' },
+        { text: '8', callback_data: 'duration_8' },
+        { text: '9', callback_data: 'duration_9' },
+        { text: '10', callback_data: 'duration_10' }
+      ],
+      [
+        { text: '11', callback_data: 'duration_11' },
+        { text: '12', callback_data: 'duration_12' },
+        { text: '13', callback_data: 'duration_13' },
+        { text: '14', callback_data: 'duration_14' }
+      ]
+    ]
+  };
+
+  bot.sendMessage(chatId, '2️⃣ What is your *trip duration* (number of days)?', { 
+    parse_mode: 'Markdown',
+    reply_markup: inlineKeyboard
+  })
+  .then(message => {
+    const session = userSessions.get(chatId);
+    if (session) {
+      session.messageIds.push(message.message_id);
+    }
+  });
 }
 
 // Function to ask for travel dates/season
 function askTimeOfYear(chatId: number): void {
-  bot.sendMessage(chatId, '3️⃣ What are your *travel dates / season / month*?', { parse_mode: 'Markdown' })
-    .then(message => {
-      const session = userSessions.get(chatId);
-      if (session) {
-        session.messageIds.push(message.message_id);
-      }
-    });
+  // Create inline keyboard with months and emojis
+  const inlineKeyboard = {
+    inline_keyboard: [
+      [
+        { text: '❄️ January', callback_data: 'month_January' },
+        { text: '❄️ February', callback_data: 'month_February' },
+        { text: '🌱 March', callback_data: 'month_March' },
+        { text: '🌱 April', callback_data: 'month_April' }
+      ],
+      [
+        { text: '🌱 May', callback_data: 'month_May' },
+        { text: '☀️ June', callback_data: 'month_June' },
+        { text: '☀️ July', callback_data: 'month_July' },
+        { text: '☀️ August', callback_data: 'month_August' }
+      ],
+      [
+        { text: '🍂 September', callback_data: 'month_September' },
+        { text: '🍂 October', callback_data: 'month_October' },
+        { text: '🍂 November', callback_data: 'month_November' },
+        { text: '❄️ December', callback_data: 'month_December' }
+      ],
+      [
+        { text: '❄️ Winter', callback_data: 'season_Winter' },
+        { text: '🌱 Spring', callback_data: 'season_Spring' },
+        { text: '☀️ Summer', callback_data: 'season_Summer' },
+        { text: '🍂 Fall', callback_data: 'season_Fall' }
+      ]
+    ]
+  };
+
+  bot.sendMessage(chatId, '3️⃣ What are your *travel dates / season / month*?', { 
+    parse_mode: 'Markdown',
+    reply_markup: inlineKeyboard
+  })
+  .then(message => {
+    const session = userSessions.get(chatId);
+    if (session) {
+      session.messageIds.push(message.message_id);
+    }
+  });
 }
 
 // Function to ask for vacation style
 function askVacationStyle(chatId: number): void {
+  // Create inline keyboard with vacation styles
+  const inlineKeyboard = {
+    inline_keyboard: [
+      [
+        { text: 'Family Trip', callback_data: 'style_Family Trip' },
+        { text: 'Romantic Getaway', callback_data: 'style_Romantic Getaway' }
+      ],
+      [
+        { text: 'Adventure', callback_data: 'style_Adventure' },
+        { text: 'Beach', callback_data: 'style_Beach' }
+      ],
+      [
+        { text: 'City', callback_data: 'style_City' },
+        { text: 'Cultural', callback_data: 'style_Cultural' }
+      ],
+      [
+        { text: 'Luxury', callback_data: 'style_Luxury' },
+        { text: 'Budget', callback_data: 'style_Budget' }
+      ],
+      [
+        { text: 'Nature', callback_data: 'style_Nature' },
+        { text: 'Food & Wine', callback_data: 'style_Food & Wine' }
+      ],
+      [
+        { text: '✅ Done', callback_data: 'style_done' }
+      ]
+    ]
+  };
+
   bot.sendMessage(
     chatId, 
-    '4️⃣ What is your *vacation style*? (e.g., Family Trip, Romantic Getaway, City, etc.)', 
-    { parse_mode: 'Markdown' }
+    '4️⃣ What is your *vacation style*? Select one or more options:', 
+    { 
+      parse_mode: 'Markdown',
+      reply_markup: inlineKeyboard
+    }
   ).then(message => {
     const session = userSessions.get(chatId);
     if (session) {
@@ -219,46 +313,123 @@ function askDepartureCity(chatId: number): void {
 
 // Function to ask for currency
 function askCurrency(chatId: number): void {
-  bot.sendMessage(chatId, '6️⃣ What *currency* would you like to use? (e.g., USD, EUR, GBP)', { parse_mode: 'Markdown' })
-    .then(message => {
-      const session = userSessions.get(chatId);
-      if (session) {
-        session.messageIds.push(message.message_id);
-      }
-    });
+  // Create inline keyboard with common currencies
+  const inlineKeyboard = {
+    inline_keyboard: [
+      [
+        { text: '💵 USD (US Dollar)', callback_data: 'currency_USD' },
+        { text: '💶 EUR (Euro)', callback_data: 'currency_EUR' }
+      ],
+      [
+        { text: '💷 GBP (British Pound)', callback_data: 'currency_GBP' },
+        { text: '💴 JPY (Japanese Yen)', callback_data: 'currency_JPY' }
+      ],
+      [
+        { text: '🇦🇺 AUD (Australian Dollar)', callback_data: 'currency_AUD' },
+        { text: '🇨🇦 CAD (Canadian Dollar)', callback_data: 'currency_CAD' }
+      ],
+      [
+        { text: '🇨🇭 CHF (Swiss Franc)', callback_data: 'currency_CHF' },
+        { text: '🇨🇳 CNY (Chinese Yuan)', callback_data: 'currency_CNY' }
+      ],
+      [
+        { text: '🇮🇳 INR (Indian Rupee)', callback_data: 'currency_INR' },
+        { text: '🇧🇷 BRL (Brazilian Real)', callback_data: 'currency_BRL' }
+      ]
+    ]
+  };
+
+  bot.sendMessage(chatId, '6️⃣ What *currency* would you like to use?', { 
+    parse_mode: 'Markdown',
+    reply_markup: inlineKeyboard
+  })
+  .then(message => {
+    const session = userSessions.get(chatId);
+    if (session) {
+      session.messageIds.push(message.message_id);
+    }
+  });
 }
 
 // Function to ask for number of adults
 function askNumberAdults(chatId: number): void {
-  bot.sendMessage(chatId, '7️⃣ How many *adults* are traveling?', { parse_mode: 'Markdown' })
-    .then(message => {
-      const session = userSessions.get(chatId);
-      if (session) {
-        session.messageIds.push(message.message_id);
-      }
-    });
+  // Create inline keyboard with buttons 1-5
+  const inlineKeyboard = {
+    inline_keyboard: [
+      [
+        { text: '1', callback_data: 'adults_1' },
+        { text: '2', callback_data: 'adults_2' },
+        { text: '3', callback_data: 'adults_3' },
+        { text: '4', callback_data: 'adults_4' },
+        { text: '5', callback_data: 'adults_5' }
+      ]
+    ]
+  };
+
+  bot.sendMessage(chatId, '7️⃣ How many *adults* are traveling?', { 
+    parse_mode: 'Markdown',
+    reply_markup: inlineKeyboard
+  })
+  .then(message => {
+    const session = userSessions.get(chatId);
+    if (session) {
+      session.messageIds.push(message.message_id);
+    }
+  });
 }
 
 // Function to ask for number of children
 function askNumberKids(chatId: number): void {
-  bot.sendMessage(chatId, '8️⃣ How many *children* are traveling?', { parse_mode: 'Markdown' })
-    .then(message => {
-      const session = userSessions.get(chatId);
-      if (session) {
-        session.messageIds.push(message.message_id);
-      }
-    });
+  // Create inline keyboard with buttons 0-4
+  const inlineKeyboard = {
+    inline_keyboard: [
+      [
+        { text: '0', callback_data: 'kids_0' },
+        { text: '1', callback_data: 'kids_1' },
+        { text: '2', callback_data: 'kids_2' },
+        { text: '3', callback_data: 'kids_3' },
+        { text: '4', callback_data: 'kids_4' }
+      ]
+    ]
+  };
+
+  bot.sendMessage(chatId, '8️⃣ How many *children* are traveling?', { 
+    parse_mode: 'Markdown',
+    reply_markup: inlineKeyboard
+  })
+  .then(message => {
+    const session = userSessions.get(chatId);
+    if (session) {
+      session.messageIds.push(message.message_id);
+    }
+  });
 }
 
 // Function to ask for hotel rating
 function askLuxuryLevel(chatId: number): void {
-  bot.sendMessage(chatId, '9️⃣ What is your *preferred hotel rating* (1-5 stars)?', { parse_mode: 'Markdown' })
-    .then(message => {
-      const session = userSessions.get(chatId);
-      if (session) {
-        session.messageIds.push(message.message_id);
-      }
-    });
+  // Create inline keyboard with buttons 1-5 stars
+  const inlineKeyboard = {
+    inline_keyboard: [
+      [
+        { text: '⭐', callback_data: 'luxury_1' },
+        { text: '⭐⭐', callback_data: 'luxury_2' },
+        { text: '⭐⭐⭐', callback_data: 'luxury_3' },
+        { text: '⭐⭐⭐⭐', callback_data: 'luxury_4' },
+        { text: '⭐⭐⭐⭐⭐', callback_data: 'luxury_5' }
+      ]
+    ]
+  };
+
+  bot.sendMessage(chatId, '9️⃣ What is your *preferred hotel rating*?', { 
+    parse_mode: 'Markdown',
+    reply_markup: inlineKeyboard
+  })
+  .then(message => {
+    const session = userSessions.get(chatId);
+    if (session) {
+      session.messageIds.push(message.message_id);
+    }
+  });
 }
 
 // Function to generate itinerary
@@ -454,6 +625,190 @@ bot.on('message', (msg) => {
   }
 });
 
-// Start the bot
-console.log('🍊 TangerineBot is running...');
-console.log('Add your bot to Telegram and use /start to begin planning your trip!');
+// Handle callback queries from inline buttons
+bot.on('callback_query', (callbackQuery) => {
+  const chatId = callbackQuery.message?.chat.id;
+  const data = callbackQuery.data;
+  
+  if (!chatId || !data) return;
+  
+  const session = userSessions.get(chatId);
+  if (!session) return;
+  
+  // Handle duration selection
+  if (data.startsWith('duration_')) {
+    const duration = parseInt(data.split('_')[1]);
+    session.tripData.duration = `${duration} days`;
+    
+    // Acknowledge the callback
+    bot.answerCallbackQuery(callbackQuery.id, { text: `Selected: ${duration} days` });
+    
+    // Update the message to show the selection
+    bot.editMessageText(`2️⃣ Trip duration: *${duration} days*`, {
+      chat_id: chatId,
+      message_id: callbackQuery.message?.message_id,
+      parse_mode: 'Markdown'
+    });
+    
+    // Move to the next step
+    askTimeOfYear(chatId);
+  }
+  
+  // Handle month/season selection
+  else if (data.startsWith('month_') || data.startsWith('season_')) {
+    const timeType = data.startsWith('month_') ? 'month' : 'season';
+    const timeValue = data.split('_')[1];
+    session.tripData.timeOfYear = timeValue;
+    
+    // Acknowledge the callback
+    bot.answerCallbackQuery(callbackQuery.id, { text: `Selected: ${timeValue}` });
+    
+    // Update the message to show the selection
+    bot.editMessageText(`3️⃣ Travel time: *${timeValue}*`, {
+      chat_id: chatId,
+      message_id: callbackQuery.message?.message_id,
+      parse_mode: 'Markdown'
+    });
+    
+    // Move to the next step
+    askVacationStyle(chatId);
+  }
+  
+  // Handle vacation style selection
+  else if (data.startsWith('style_')) {
+    const style = data.split('_')[1];
+    
+    // Check if the user clicked "Done"
+    if (style === 'done') {
+      // If no styles were selected, set a default
+      if (!session.tripData.vacationStyle || session.tripData.vacationStyle.length === 0) {
+        session.tripData.vacationStyle = ['General Tourism'];
+      }
+      
+      // Acknowledge the callback
+      bot.answerCallbackQuery(callbackQuery.id, { text: 'Vacation styles confirmed' });
+      
+      // Update the message to show final selections
+      const stylesText = session.tripData.vacationStyle.join(', ');
+      bot.editMessageText(`4️⃣ Vacation styles: *${stylesText}*`, {
+        chat_id: chatId,
+        message_id: callbackQuery.message?.message_id,
+        parse_mode: 'Markdown'
+      });
+      
+      // Move to the next step
+      askDepartureCity(chatId);
+      return;
+    }
+    
+    // Initialize the array if it doesn't exist
+    if (!session.tripData.vacationStyle) {
+      session.tripData.vacationStyle = [];
+    }
+    
+    // Add the style if it's not already in the array
+    if (!session.tripData.vacationStyle.includes(style)) {
+      session.tripData.vacationStyle.push(style);
+    }
+    
+    // Acknowledge the callback
+    bot.answerCallbackQuery(callbackQuery.id, { text: `Added: ${style}` });
+    
+    // Update the message to show current selections
+    const stylesText = session.tripData.vacationStyle.join(', ');
+    bot.editMessageText(`4️⃣ Vacation styles: *${stylesText}*\n\nSelect more or click "Done" when finished.`, {
+      chat_id: chatId,
+      message_id: callbackQuery.message?.message_id,
+      parse_mode: 'Markdown',
+      reply_markup: callbackQuery.message?.reply_markup
+    });
+  }
+  
+  // Handle currency selection
+  else if (data.startsWith('currency_')) {
+    const currency = data.split('_')[1];
+    session.tripData.currency = currency;
+    
+    // Acknowledge the callback
+    bot.answerCallbackQuery(callbackQuery.id, { text: `Selected: ${currency}` });
+    
+    // Update the message to show the selection
+    bot.editMessageText(`6️⃣ Currency: *${currency}*`, {
+      chat_id: chatId,
+      message_id: callbackQuery.message?.message_id,
+      parse_mode: 'Markdown'
+    });
+    
+    // Move to the next step
+    askNumberAdults(chatId);
+  }
+  
+  // Handle adults selection
+  else if (data.startsWith('adults_')) {
+    const numberAdults = parseInt(data.split('_')[1]);
+    session.tripData.numberAdults = isNaN(numberAdults) ? 1 : numberAdults;
+    
+    // Acknowledge the callback
+    bot.answerCallbackQuery(callbackQuery.id, { text: `Selected: ${numberAdults} adults` });
+    
+    // Update the message to show the selection
+    bot.editMessageText(`7️⃣ Adults: *${numberAdults}*`, {
+      chat_id: chatId,
+      message_id: callbackQuery.message?.message_id,
+      parse_mode: 'Markdown'
+    });
+    
+    // Move to the next step
+    askNumberKids(chatId);
+  }
+  
+  // Handle kids selection
+  else if (data.startsWith('kids_')) {
+    const numberKids = parseInt(data.split('_')[1]);
+    session.tripData.numberKids = isNaN(numberKids) ? 0 : numberKids;
+    
+    // Acknowledge the callback
+    bot.answerCallbackQuery(callbackQuery.id, { text: `Selected: ${numberKids} children` });
+    
+    // Update the message to show the selection
+    bot.editMessageText(`8️⃣ Children: *${numberKids}*`, {
+      chat_id: chatId,
+      message_id: callbackQuery.message?.message_id,
+      parse_mode: 'Markdown'
+    });
+    
+    // Move to the next step
+    askLuxuryLevel(chatId);
+  }
+  
+  // Handle luxury level selection
+  else if (data.startsWith('luxury_')) {
+    const luxuryLevel = parseInt(data.split('_')[1]);
+    session.tripData.luxuryLevel = luxuryLevel;
+    
+    // Acknowledge the callback
+    bot.answerCallbackQuery(callbackQuery.id, { text: `Selected: ${luxuryLevel} stars` });
+    
+    // Update the message to show the selection
+    bot.editMessageText(`9️⃣ Hotel rating: *${luxuryLevel} stars*`, {
+      chat_id: chatId,
+      message_id: callbackQuery.message?.message_id,
+      parse_mode: 'Markdown'
+    });
+    
+    // Show summary and ask for confirmation
+    let summary = '*Trip Summary:*\n\n';
+    summary += `🌍 Destination: ${session.tripData.destination}\n`;
+    summary += `⏱️ Duration: ${session.tripData.duration}\n`;
+    summary += `🗓️ Travel Dates/Season: ${session.tripData.timeOfYear}\n`;
+    summary += `🏖️ Vacation Style: ${session.tripData.vacationStyle?.join(', ')}\n`;
+    summary += `🛫 Departure City: ${session.tripData.departureCity}\n`;
+    summary += `💵 Currency: ${session.tripData.currency}\n`;
+    summary += `👨‍👩‍👧‍👦 Travelers: ${session.tripData.numberAdults} adults, ${session.tripData.numberKids} children\n`;
+    summary += `🏨 Hotel Rating: ${session.tripData.luxuryLevel || 'Not specified'} stars\n\n`;
+    summary += 'Is this correct? Type *YES* to generate your itinerary or *NO* to start over.';
+    
+    bot.sendMessage(chatId, summary, { parse_mode: 'Markdown' });
+    session.step = 10; // Move to confirmation step
+  }
+});
