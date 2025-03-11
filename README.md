@@ -23,8 +23,8 @@ TangerineBot is an AI-powered travel assistant that helps users plan their perfe
 
 1. Clone this repository:
    ```
-   git clone https://github.com/yourusername/tangerine-bot.git
-   cd tangerine-bot
+   git clone https://github.com/vladiRoz/TangerineTripBot.git
+   cd TangerineTripBot
    ```
 
 2. Install dependencies:
@@ -99,6 +99,18 @@ The bot will generate a detailed travel itinerary including:
 - List of specific locations to visit
 - Detailed budget breakdown
 
+## Author
+
+Created by [vladiRoz](https://github.com/vladiRoz)
+
 ## License
 
 ISC 
+
+
+
+
+// vacation style - add picker, multi
+// change icon
+// LOCATIONS links to maps
+
