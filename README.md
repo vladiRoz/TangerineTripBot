@@ -11,6 +11,7 @@ TangerineBot is an AI-powered travel assistant that helps users plan their perfe
 - Recommendations for the best time to visit
 - Information about getting around at the destination
 - Clickable location links that open directly in Google Maps
+- Interactive vacation style picker with multiple selection support
 - Conversational interface through Telegram
 
 ## Prerequisites
@@ -81,7 +82,7 @@ TangerineBot will ask for the following information to generate your personalize
 - Destination (or leave blank for suggestions)
 - Trip Duration (number of days)
 - Travel Dates / Season / Month
-- Vacation Style (e.g., Family Trip, Romantic Getaway, City, etc.)
+- Vacation Style (select multiple options from an interactive keyboard)
 - Departure City
 - Currency
 - Number of Adults

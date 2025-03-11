@@ -190,13 +190,41 @@ function askTimeOfYear(chatId: number): void {
 
 // Function to ask for vacation style
 function askVacationStyle(chatId: number): void {
-  bot.sendMessage(chatId, '4️⃣ What is your *vacation style*? (e.g., Family Trip, Romantic Getaway, City, etc.)', { parse_mode: 'Markdown' })
-    .then(message => {
-      const session = userSessions.get(chatId);
-      if (session) {
-        session.messageIds.push(message.message_id);
+  // Define vacation style options
+  const vacationStyles = [
+    ['Family Trip', 'Romantic Getaway'],
+    ['City', 'Beaches & Islands'],
+    ['Local Culture', 'Shopping & Fashion'],
+    ['Nature & Wildlife', 'Tracks & Hikes'],
+    ['Amusement Parks', 'Extreme Sports'],
+    ['Road Trip', 'Backpacker'],
+    ['Done ✅'] // Add a Done button
+  ];
+  
+  // Create keyboard with vacation style options
+  const keyboard = {
+    keyboard: vacationStyles.map(row => row.map(style => ({ text: style }))),
+    one_time_keyboard: false, // Keep the keyboard visible
+    resize_keyboard: true
+  };
+  
+  bot.sendMessage(
+    chatId, 
+    '4️⃣ What is your *vacation style*? (select one or more options, then press "Done ✅" when finished)', 
+    { 
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    }
+  ).then(message => {
+    const session = userSessions.get(chatId);
+    if (session) {
+      session.messageIds.push(message.message_id);
+      // Initialize vacation style array if it doesn't exist
+      if (!session.tripData.vacationStyle) {
+        session.tripData.vacationStyle = [];
       }
-    });
+    }
+  });
 }
 
 // Function to ask for departure city
@@ -403,9 +431,45 @@ bot.on('message', (msg) => {
       askVacationStyle(chatId);
       break;
     case 4: // Vacation Style
-      session.tripData.vacationStyle = msg.text.split(',').map(style => style.trim());
-      session.step++;
-      askDepartureCity(chatId);
+      // Check if the user has typed "Done" or pressed the Done button
+      if (msg.text.trim().toLowerCase() === 'done' || msg.text.trim() === 'Done ✅') {
+        // If no styles were selected, set a default
+        if (!session.tripData.vacationStyle || session.tripData.vacationStyle.length === 0) {
+          session.tripData.vacationStyle = ['General Tourism'];
+        }
+        session.step++;
+        // Remove the keyboard when moving to the next step
+        askDepartureCity(chatId);
+        // Send a message with the final selections
+        const finalStyles = session.tripData.vacationStyle.join(', ');
+        bot.sendMessage(
+          chatId, 
+          `Your selected vacation styles: ${finalStyles}`,
+          { reply_markup: { remove_keyboard: true } }
+        );
+      } else {
+        // Add the selected style to the array if it's not already there
+        if (!session.tripData.vacationStyle) {
+          session.tripData.vacationStyle = [];
+        }
+        
+        const style = msg.text.trim();
+        if (!session.tripData.vacationStyle.includes(style)) {
+          session.tripData.vacationStyle.push(style);
+          
+          // Send a confirmation message with the current selections
+          const stylesText = session.tripData.vacationStyle.join(', ');
+          bot.sendMessage(
+            chatId, 
+            `Added "${style}" to your vacation styles.\nCurrent selections: ${stylesText}\n\nSelect more styles or press "Done ✅" to continue.`
+          );
+        } else {
+          bot.sendMessage(
+            chatId, 
+            `You've already selected "${style}".\nCurrent selections: ${session.tripData.vacationStyle.join(', ')}\n\nSelect more styles or press "Done ✅" to continue.`
+          );
+        }
+      }
       break;
     case 5: // Departure City
       session.tripData.departureCity = msg.text.trim();
