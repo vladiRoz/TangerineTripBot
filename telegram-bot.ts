@@ -24,6 +24,10 @@ if (!OPENAI_API_KEY) {
 // Create a bot instance
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 
+// Remove any existing keyboards when the bot starts
+console.log('🍊 TangerineBot is starting...');
+console.log('Removing any existing keyboards for active chats...');
+
 // User session data
 interface UserSession {
   step: number;
@@ -143,20 +147,27 @@ function formatItinerary(itinerary: any): string {
 
 // Function to start a new session
 function startNewSession(chatId: number): void {
-  userSessions.set(chatId, {
-    step: 1,
-    tripData: {
-      currency: 'USD',
-      numberAdults: 1,
-      numberKids: 0,
-      localTravel: false,
-      suggestDestination: false
-    },
-    messageIds: []
+  // Remove any existing keyboard first
+  bot.sendMessage(chatId, 'Starting new trip planning...', {
+    reply_markup: {
+      remove_keyboard: true
+    }
+  }).then(() => {
+    userSessions.set(chatId, {
+      step: 1,
+      tripData: {
+        currency: 'USD',
+        numberAdults: 1,
+        numberKids: 0,
+        localTravel: false,
+        suggestDestination: false
+      },
+      messageIds: []
+    });
+    
+    bot.sendMessage(chatId, welcomeMessage, { parse_mode: 'Markdown' })
+      .then(() => askDestination(chatId));
   });
-  
-  bot.sendMessage(chatId, welcomeMessage, { parse_mode: 'Markdown' })
-    .then(() => askDestination(chatId));
 }
 
 // Function to ask for destination
@@ -212,6 +223,8 @@ function askDuration(chatId: number): void {
 
 // Function to ask for travel dates/season
 function askTimeOfYear(chatId: number): void {
+  console.log(`askTimeOfYear called for chat ID ${chatId}`);
+  
   // Create inline keyboard with months and emojis
   const inlineKeyboard = {
     inline_keyboard: [
@@ -250,6 +263,7 @@ function askTimeOfYear(chatId: number): void {
     const session = userSessions.get(chatId);
     if (session) {
       session.messageIds.push(message.message_id);
+      console.log(`Added message ID ${message.message_id} to session, current step: ${session.step}`);
     }
   });
 }
@@ -302,17 +316,22 @@ function askVacationStyle(chatId: number): void {
 
 // Function to ask for departure city
 function askDepartureCity(chatId: number): void {
+  console.log(`askDepartureCity called for chat ID ${chatId}`);
+  
   bot.sendMessage(chatId, '5️⃣ What is your *departure city*?', { parse_mode: 'Markdown' })
     .then(message => {
       const session = userSessions.get(chatId);
       if (session) {
         session.messageIds.push(message.message_id);
+        console.log(`Added departure city message ID ${message.message_id} to session, current step: ${session.step}`);
       }
     });
 }
 
 // Function to ask for currency
 function askCurrency(chatId: number): void {
+  console.log(`askCurrency called for chat ID ${chatId}`);
+  
   // Create inline keyboard with common currencies
   const inlineKeyboard = {
     inline_keyboard: [
@@ -347,6 +366,7 @@ function askCurrency(chatId: number): void {
     const session = userSessions.get(chatId);
     if (session) {
       session.messageIds.push(message.message_id);
+      console.log(`Added currency message ID ${message.message_id} to session, current step: ${session.step}`);
     }
   });
 }
@@ -479,21 +499,57 @@ async function generateItinerary(chatId: number): Promise<void> {
     });
     
     // Send a message to start a new trip
-    await bot.sendMessage(chatId, 'Would you like to plan another trip? Use /start to begin again.');
+    await bot.sendMessage(chatId, 'Would you like to plan another trip? Use /plan to begin again.');
     
     // Clear the session
     userSessions.delete(chatId);
   } catch (error) {
     console.error('Error generating itinerary:', error);
-    bot.sendMessage(chatId, 'Sorry, an error occurred while generating your itinerary. Please try again with /start.');
+    bot.sendMessage(chatId, 'Sorry, an error occurred while generating your itinerary. Please try again with /plan.');
     userSessions.delete(chatId);
   }
 }
 
-// Handle /start command
+// Function to remove keyboard
+function removeKeyboard(chatId: number, messageText: string): void {
+  bot.sendMessage(chatId, messageText, {
+    parse_mode: 'Markdown',
+    reply_markup: {
+      remove_keyboard: true
+    }
+  });
+}
+
+// Handle /plan command (main entry point for trip planning)
+bot.onText(/\/plan/, (msg) => {
+  const chatId = msg.chat.id;
+  // Remove any existing keyboard before starting new session
+  startNewSession(chatId);
+});
+
+// Handle /start command (welcome message)
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
-  startNewSession(chatId);
+  // Remove any existing keyboard first
+  bot.sendMessage(chatId, 'Welcome to TangerineBot!', {
+    reply_markup: {
+      remove_keyboard: true
+    }
+  }).then(() => {
+    const welcomeText = `
+🍊 *Welcome to TangerineBot - Your AI Travel Assistant!* 🍊
+
+I can help you plan your perfect trip based on your preferences.
+
+*Commands:*
+/plan - Start planning a new trip
+/help - Show help message
+/cancel - Cancel the current trip planning
+
+Use /plan to begin your travel planning journey!
+`;
+    bot.sendMessage(chatId, welcomeText, { parse_mode: 'Markdown' });
+  });
 });
 
 // Handle /help command
@@ -505,12 +561,12 @@ bot.onText(/\/help/, (msg) => {
 I'm an AI-powered travel assistant that helps you plan your perfect trip based on your preferences.
 
 *Commands:*
-/start - Start planning a new trip
+/plan - Start planning a new trip
 /help - Show this help message
 /cancel - Cancel the current trip planning
 
 *How to use:*
-1. Start a new trip planning with /start
+1. Start a new trip planning with /plan
 2. Answer the questions about your travel preferences
 3. I'll generate a personalized travel itinerary for you
 
@@ -535,7 +591,12 @@ If you have any issues, please use /cancel and start again.
 bot.onText(/\/cancel/, (msg) => {
   const chatId = msg.chat.id;
   userSessions.delete(chatId);
-  bot.sendMessage(chatId, 'Trip planning canceled. Use /start to begin a new trip planning.');
+  // Remove any existing keyboard when canceling
+  bot.sendMessage(chatId, 'Trip planning canceled. Use /plan to begin a new trip planning.', {
+    reply_markup: {
+      remove_keyboard: true
+    }
+  });
 });
 
 // Handle user messages
@@ -546,9 +607,11 @@ bot.on('message', (msg) => {
   const session = userSessions.get(chatId);
   
   if (!session) {
-    bot.sendMessage(chatId, 'Please use /start to begin planning your trip.');
+    bot.sendMessage(chatId, 'Please use /plan to begin planning your trip.');
     return;
   }
+  
+  console.log(`Processing message for step ${session.step}: "${msg.text}"`);
   
   // Process user input based on the current step
   switch (session.step) {
@@ -556,31 +619,37 @@ bot.on('message', (msg) => {
       session.tripData.destination = msg.text.trim() || UNKNOWN;
       session.tripData.suggestDestination = !msg.text.trim();
       session.step++;
+      console.log(`Updated step to ${session.step}, asking for duration`);
       askDuration(chatId);
       break;
     case 2: // Duration
       session.tripData.duration = msg.text.trim() || UNKNOWN;
       session.step++;
+      console.log(`Updated step to ${session.step}, asking for time of year`);
       askTimeOfYear(chatId);
       break;
     case 3: // Time of Year
       session.tripData.timeOfYear = msg.text.trim() || UNKNOWN;
       session.step++;
+      console.log(`Updated step to ${session.step}, asking for vacation style`);
       askVacationStyle(chatId);
       break;
     case 4: // Vacation Style
       session.tripData.vacationStyle = msg.text.trim().split(',').map(style => style.trim());
       session.step++;
+      console.log(`Updated step to ${session.step}, asking for departure city`);
       askDepartureCity(chatId);
       break;
     case 5: // Departure City
       session.tripData.departureCity = msg.text.trim();
-      session.step++;
+      session.step = 6; // Explicitly set to step 6
+      console.log(`Updated step to ${session.step}, asking for currency. Departure city set to: ${session.tripData.departureCity}`);
       askCurrency(chatId);
       break;
     case 6: // Currency
       session.tripData.currency = msg.text.trim() || 'USD';
       session.step++;
+      console.log(`Updated step to ${session.step}, asking for number of adults`);
       askNumberAdults(chatId);
       break;
     case 7: // Number of Adults
@@ -618,7 +687,7 @@ bot.on('message', (msg) => {
       if (msg.text.trim().toUpperCase() === 'YES') {
         generateItinerary(chatId);
       } else {
-        bot.sendMessage(chatId, 'Trip planning canceled. Use /start to begin a new trip planning.');
+        bot.sendMessage(chatId, 'Trip planning canceled. Use /plan to begin a new trip planning.');
         userSessions.delete(chatId);
       }
       break;
@@ -647,7 +716,8 @@ bot.on('callback_query', (callbackQuery) => {
     bot.editMessageText(`2️⃣ Trip duration: *${duration} days*`, {
       chat_id: chatId,
       message_id: callbackQuery.message?.message_id,
-      parse_mode: 'Markdown'
+      parse_mode: 'Markdown',
+      reply_markup: { inline_keyboard: [] }  // Empty inline keyboard
     });
     
     // Move to the next step
@@ -667,7 +737,8 @@ bot.on('callback_query', (callbackQuery) => {
     bot.editMessageText(`3️⃣ Travel time: *${timeValue}*`, {
       chat_id: chatId,
       message_id: callbackQuery.message?.message_id,
-      parse_mode: 'Markdown'
+      parse_mode: 'Markdown',
+      reply_markup: { inline_keyboard: [] }  // Empty inline keyboard
     });
     
     // Move to the next step
@@ -693,8 +764,13 @@ bot.on('callback_query', (callbackQuery) => {
       bot.editMessageText(`4️⃣ Vacation styles: *${stylesText}*`, {
         chat_id: chatId,
         message_id: callbackQuery.message?.message_id,
-        parse_mode: 'Markdown'
+        parse_mode: 'Markdown',
+        reply_markup: { inline_keyboard: [] }  // Empty inline keyboard
       });
+      
+      // Ensure we're at the correct step before moving to departure city
+      session.step = 5;
+      console.log(`Setting step to 5 after vacation style selection is done`);
       
       // Move to the next step
       askDepartureCity(chatId);
@@ -714,13 +790,13 @@ bot.on('callback_query', (callbackQuery) => {
     // Acknowledge the callback
     bot.answerCallbackQuery(callbackQuery.id, { text: `Added: ${style}` });
     
-    // Update the message to show current selections
+    // Update the message to show current selections but keep the keyboard
     const stylesText = session.tripData.vacationStyle.join(', ');
     bot.editMessageText(`4️⃣ Vacation styles: *${stylesText}*\n\nSelect more or click "Done" when finished.`, {
       chat_id: chatId,
       message_id: callbackQuery.message?.message_id,
       parse_mode: 'Markdown',
-      reply_markup: callbackQuery.message?.reply_markup
+      reply_markup: callbackQuery.message?.reply_markup  // Keep the original keyboard
     });
   }
   
@@ -736,7 +812,8 @@ bot.on('callback_query', (callbackQuery) => {
     bot.editMessageText(`6️⃣ Currency: *${currency}*`, {
       chat_id: chatId,
       message_id: callbackQuery.message?.message_id,
-      parse_mode: 'Markdown'
+      parse_mode: 'Markdown',
+      reply_markup: { inline_keyboard: [] }  // Empty inline keyboard
     });
     
     // Move to the next step
@@ -755,7 +832,8 @@ bot.on('callback_query', (callbackQuery) => {
     bot.editMessageText(`7️⃣ Adults: *${numberAdults}*`, {
       chat_id: chatId,
       message_id: callbackQuery.message?.message_id,
-      parse_mode: 'Markdown'
+      parse_mode: 'Markdown',
+      reply_markup: { inline_keyboard: [] }  // Empty inline keyboard
     });
     
     // Move to the next step
@@ -774,7 +852,8 @@ bot.on('callback_query', (callbackQuery) => {
     bot.editMessageText(`8️⃣ Children: *${numberKids}*`, {
       chat_id: chatId,
       message_id: callbackQuery.message?.message_id,
-      parse_mode: 'Markdown'
+      parse_mode: 'Markdown',
+      reply_markup: { inline_keyboard: [] }  // Empty inline keyboard
     });
     
     // Move to the next step
@@ -793,7 +872,8 @@ bot.on('callback_query', (callbackQuery) => {
     bot.editMessageText(`9️⃣ Hotel rating: *${luxuryLevel} stars*`, {
       chat_id: chatId,
       message_id: callbackQuery.message?.message_id,
-      parse_mode: 'Markdown'
+      parse_mode: 'Markdown',
+      reply_markup: { inline_keyboard: [] }  // Empty inline keyboard
     });
     
     // Show summary and ask for confirmation
