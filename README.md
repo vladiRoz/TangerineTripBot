@@ -109,9 +109,3 @@ Created by [vladiRoz](https://github.com/vladiRoz)
 
 ISC 
 
-
-
-
-// vacation style - add picker, multi
-// LOCATIONS links to maps
-

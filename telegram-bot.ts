@@ -93,6 +93,12 @@ function parseResponse(response: string): any {
   }
 }
 
+// Function to create a Google Maps URL for a location
+function createGoogleMapsUrl(location: string): string {
+  const encodedLocation = encodeURIComponent(location);
+  return `https://www.google.com/maps/search/?api=1&query=${encodedLocation}`;
+}
+
 // Function to format the itinerary for Telegram
 function formatItinerary(itinerary: any): string {
   let message = `🌍 *${itinerary.title}*\n\n`;
@@ -115,10 +121,8 @@ function formatItinerary(itinerary: any): string {
   
   message += `\n📍 *LOCATIONS:*\n`;
   itinerary.locations.forEach((location: string, index: number) => {
-    // Create a Google Maps link for each location
-    const encodedLocation = encodeURIComponent(location);
-    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedLocation}`;
-    message += `   ${index + 1}. [${location}](${mapsUrl})\n`;
+    const locationUrl = createGoogleMapsUrl(location);
+    message += `   ${index + 1}. [${location}](${locationUrl})\n`;
   });
   
   message += `\n💰 *BUDGET:*\n`;
@@ -190,39 +194,14 @@ function askTimeOfYear(chatId: number): void {
 
 // Function to ask for vacation style
 function askVacationStyle(chatId: number): void {
-  // Define vacation style options
-  const vacationStyles = [
-    ['Family Trip', 'Romantic Getaway'],
-    ['City', 'Beaches & Islands'],
-    ['Local Culture', 'Shopping & Fashion'],
-    ['Nature & Wildlife', 'Tracks & Hikes'],
-    ['Amusement Parks', 'Extreme Sports'],
-    ['Road Trip', 'Backpacker'],
-    ['Done ✅'] // Add a Done button
-  ];
-  
-  // Create keyboard with vacation style options
-  const keyboard = {
-    keyboard: vacationStyles.map(row => row.map(style => ({ text: style }))),
-    one_time_keyboard: false, // Keep the keyboard visible
-    resize_keyboard: true
-  };
-  
   bot.sendMessage(
     chatId, 
-    '4️⃣ What is your *vacation style*? (select one or more options, then press "Done ✅" when finished)', 
-    { 
-      parse_mode: 'Markdown',
-      reply_markup: keyboard
-    }
+    '4️⃣ What is your *vacation style*? (e.g., Family Trip, Romantic Getaway, City, etc.)', 
+    { parse_mode: 'Markdown' }
   ).then(message => {
     const session = userSessions.get(chatId);
     if (session) {
       session.messageIds.push(message.message_id);
-      // Initialize vacation style array if it doesn't exist
-      if (!session.tripData.vacationStyle) {
-        session.tripData.vacationStyle = [];
-      }
     }
   });
 }
@@ -274,17 +253,6 @@ function askNumberKids(chatId: number): void {
 // Function to ask for hotel rating
 function askLuxuryLevel(chatId: number): void {
   bot.sendMessage(chatId, '9️⃣ What is your *preferred hotel rating* (1-5 stars)?', { parse_mode: 'Markdown' })
-    .then(message => {
-      const session = userSessions.get(chatId);
-      if (session) {
-        session.messageIds.push(message.message_id);
-      }
-    });
-}
-
-// Function to ask for budget
-function askBudget(chatId: number): void {
-  bot.sendMessage(chatId, '🔟 What is your *budget* (in specified currency)?', { parse_mode: 'Markdown' })
     .then(message => {
       const session = userSessions.get(chatId);
       if (session) {
@@ -376,16 +344,15 @@ I'm an AI-powered travel assistant that helps you plan your perfect trip based o
 3. I'll generate a personalized travel itinerary for you
 
 *Travel preferences include:*
-- Destination
-- Trip Duration
-- Travel Dates / Season / Month
-- Vacation Style
-- Departure City
-- Currency
-- Number of Adults
-- Number of Children
-- Preferred Hotel Rating
-- Budget
+Destination
+Trip Duration
+Travel Dates / Season / Month
+Vacation Style
+Departure City
+Currency
+Number of Adults
+Number of Children
+Preferred Hotel Rating
 
 If you have any issues, please use /cancel and start again.
 `;
@@ -431,45 +398,9 @@ bot.on('message', (msg) => {
       askVacationStyle(chatId);
       break;
     case 4: // Vacation Style
-      // Check if the user has typed "Done" or pressed the Done button
-      if (msg.text.trim().toLowerCase() === 'done' || msg.text.trim() === 'Done ✅') {
-        // If no styles were selected, set a default
-        if (!session.tripData.vacationStyle || session.tripData.vacationStyle.length === 0) {
-          session.tripData.vacationStyle = ['General Tourism'];
-        }
-        session.step++;
-        // Remove the keyboard when moving to the next step
-        askDepartureCity(chatId);
-        // Send a message with the final selections
-        const finalStyles = session.tripData.vacationStyle.join(', ');
-        bot.sendMessage(
-          chatId, 
-          `Your selected vacation styles: ${finalStyles}`,
-          { reply_markup: { remove_keyboard: true } }
-        );
-      } else {
-        // Add the selected style to the array if it's not already there
-        if (!session.tripData.vacationStyle) {
-          session.tripData.vacationStyle = [];
-        }
-        
-        const style = msg.text.trim();
-        if (!session.tripData.vacationStyle.includes(style)) {
-          session.tripData.vacationStyle.push(style);
-          
-          // Send a confirmation message with the current selections
-          const stylesText = session.tripData.vacationStyle.join(', ');
-          bot.sendMessage(
-            chatId, 
-            `Added "${style}" to your vacation styles.\nCurrent selections: ${stylesText}\n\nSelect more styles or press "Done ✅" to continue.`
-          );
-        } else {
-          bot.sendMessage(
-            chatId, 
-            `You've already selected "${style}".\nCurrent selections: ${session.tripData.vacationStyle.join(', ')}\n\nSelect more styles or press "Done ✅" to continue.`
-          );
-        }
-      }
+      session.tripData.vacationStyle = msg.text.trim().split(',').map(style => style.trim());
+      session.step++;
+      askDepartureCity(chatId);
       break;
     case 5: // Departure City
       session.tripData.departureCity = msg.text.trim();
@@ -496,12 +427,6 @@ bot.on('message', (msg) => {
     case 9: // Luxury Level
       const luxuryLevel = parseInt(msg.text.trim(), 10);
       session.tripData.luxuryLevel = isNaN(luxuryLevel) ? undefined : luxuryLevel;
-      session.step++;
-      askBudget(chatId);
-      break;
-    case 10: // Budget
-      const budget = parseInt(msg.text.trim(), 10);
-      session.tripData.budget = isNaN(budget) ? undefined : budget;
       
       // Show summary and confirm
       let summary = '📋 *Trip Planning Summary:*\n\n';
@@ -512,14 +437,13 @@ bot.on('message', (msg) => {
       summary += `🛫 Departure City: ${session.tripData.departureCity}\n`;
       summary += `💵 Currency: ${session.tripData.currency}\n`;
       summary += `👨‍👩‍👧‍👦 Travelers: ${session.tripData.numberAdults} adults, ${session.tripData.numberKids} children\n`;
-      summary += `🏨 Hotel Rating: ${session.tripData.luxuryLevel || 'Not specified'} stars\n`;
-      summary += `💰 Budget: ${session.tripData.budget || 'Not specified'} ${session.tripData.currency}\n\n`;
+      summary += `🏨 Hotel Rating: ${session.tripData.luxuryLevel || 'Not specified'} stars\n\n`;
       summary += 'Is this correct? Type *YES* to generate your itinerary or *NO* to start over.';
-      
+
       bot.sendMessage(chatId, summary, { parse_mode: 'Markdown' });
       session.step++;
       break;
-    case 11: // Confirmation
+    case 10: // Confirmation
       if (msg.text.trim().toUpperCase() === 'YES') {
         generateItinerary(chatId);
       } else {
@@ -532,4 +456,4 @@ bot.on('message', (msg) => {
 
 // Start the bot
 console.log('🍊 TangerineBot is running...');
-console.log('Add your bot to Telegram and use /start to begin planning your trip!'); 
+console.log('Add your bot to Telegram and use /start to begin planning your trip!');
