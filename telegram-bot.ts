@@ -115,7 +115,10 @@ function formatItinerary(itinerary: any): string {
   
   message += `\n📍 *LOCATIONS:*\n`;
   itinerary.locations.forEach((location: string, index: number) => {
-    message += `   ${index + 1}. ${location}\n`;
+    // Create a Google Maps link for each location
+    const encodedLocation = encodeURIComponent(location);
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedLocation}`;
+    message += `   ${index + 1}. [${location}](${mapsUrl})\n`;
   });
   
   message += `\n💰 *BUDGET:*\n`;
@@ -303,7 +306,10 @@ async function generateItinerary(chatId: number): Promise<void> {
     await bot.deleteMessage(chatId, loadingMessage.message_id);
     
     // Send the itinerary
-    await bot.sendMessage(chatId, formattedItinerary, { parse_mode: 'Markdown' });
+    await bot.sendMessage(chatId, formattedItinerary, { 
+      parse_mode: 'Markdown',
+      disable_web_page_preview: true // Prevent link previews from cluttering the message
+    });
     
     // Send a message to start a new trip
     await bot.sendMessage(chatId, 'Would you like to plan another trip? Use /start to begin again.');
