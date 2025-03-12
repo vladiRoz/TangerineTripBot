@@ -264,22 +264,22 @@ function askTimeOfYear(chatId: number): void {
   const inlineKeyboard = {
     inline_keyboard: [
       [
-        { text: '❄️ January', callback_data: 'month_January' },
-        { text: '❄️ February', callback_data: 'month_February' },
-        { text: '🌱 March', callback_data: 'month_March' },
-        { text: '🌱 April', callback_data: 'month_April' }
+        { text: 'January', callback_data: 'month_January' },
+        { text: 'February', callback_data: 'month_February' },
+        { text: 'March', callback_data: 'month_March' },
+        { text: 'April', callback_data: 'month_April' }
       ],
       [
-        { text: '🌱 May', callback_data: 'month_May' },
-        { text: '☀️ June', callback_data: 'month_June' },
-        { text: '☀️ July', callback_data: 'month_July' },
-        { text: '☀️ August', callback_data: 'month_August' }
+        { text: 'May', callback_data: 'month_May' },
+        { text: 'June', callback_data: 'month_June' },
+        { text: 'July', callback_data: 'month_July' },
+        { text: 'August', callback_data: 'month_August' }
       ],
       [
-        { text: '🍂 September', callback_data: 'month_September' },
-        { text: '🍂 October', callback_data: 'month_October' },
-        { text: '🍂 November', callback_data: 'month_November' },
-        { text: '❄️ December', callback_data: 'month_December' }
+        { text: 'September', callback_data: 'month_September' },
+        { text: 'October', callback_data: 'month_October' },
+        { text: 'November', callback_data: 'month_November' },
+        { text: 'December', callback_data: 'month_December' }
       ],
       [
         { text: '❄️ Winter', callback_data: 'season_Winter' },
@@ -466,11 +466,11 @@ function askLuxuryLevel(chatId: number): void {
   const inlineKeyboard = {
     inline_keyboard: [
       [
-        { text: '⭐', callback_data: 'luxury_1' },
-        { text: '⭐⭐', callback_data: 'luxury_2' },
-        { text: '⭐⭐⭐', callback_data: 'luxury_3' },
-        { text: '⭐⭐⭐⭐', callback_data: 'luxury_4' },
-        { text: '⭐⭐⭐⭐⭐', callback_data: 'luxury_5' }
+        { text: '1 ⭐', callback_data: 'luxury_1' },
+        { text: '2 ⭐', callback_data: 'luxury_2' },
+        { text: '3 ⭐', callback_data: 'luxury_3' },
+        { text: '4 ⭐', callback_data: 'luxury_4' },
+        { text: '5 ⭐', callback_data: 'luxury_5' }
       ]
     ]
   };
@@ -496,7 +496,6 @@ async function generateItinerary(chatId: number): Promise<void> {
       return;
     }
 
-    // Send loading message
     const loadingMessage = await bot.sendMessage(chatId, '🔄 Generating your personalized travel itinerary... Please wait...');
     
     // Prepare trip data
@@ -917,14 +916,14 @@ bot.on('callback_query', (callbackQuery) => {
     bot.answerCallbackQuery(callbackQuery.id, { text: `Selected: ${luxuryLevel} stars` });
     
     // Update the message to show the selection
-    bot.editMessageText(`9️⃣ Hotel rating: *${luxuryLevel} stars*`, {
+    bot.editMessageText(`9️⃣ Hotel rating: *${luxuryLevel} ⭐*`, {
       chat_id: chatId,
       message_id: callbackQuery.message?.message_id,
       parse_mode: 'Markdown',
       reply_markup: { inline_keyboard: [] }  // Empty inline keyboard
     });
     
-    // Show summary and ask for confirmation
+    // Show summary and ask for confirmation with inline buttons
     let summary = '*Trip Summary:*\n\n';
     summary += `🌍 Destination: ${session.tripData.destination}\n`;
     summary += `⏱️ Duration: ${session.tripData.duration}\n`;
@@ -933,10 +932,46 @@ bot.on('callback_query', (callbackQuery) => {
     summary += `🛫 Departure City: ${session.tripData.departureCity}\n`;
     summary += `💵 Currency: ${session.tripData.currency}\n`;
     summary += `👨‍👩‍👧‍👦 Travelers: ${session.tripData.numberAdults} adults, ${session.tripData.numberKids} children\n`;
-    summary += `🏨 Hotel Rating: ${session.tripData.luxuryLevel || 'Not specified'} stars\n\n`;
-    summary += 'Is this correct? Type *YES* to generate your itinerary or *NO* to start over.';
+    summary += `🛌 Hotel Rating: ${session.tripData.luxuryLevel || 'Not specified'} ⭐\n\n`;
+    summary += 'Is this correct?';
     
-    bot.sendMessage(chatId, summary, { parse_mode: 'Markdown' });
+    // Create inline keyboard for confirmation
+    const confirmKeyboard = {
+      inline_keyboard: [
+        [
+          { text: '✅ Yes', callback_data: 'confirm_yes' },
+          { text: '❌ No', callback_data: 'confirm_no' }
+        ]
+      ]
+    };
+    
+    bot.sendMessage(chatId, summary, { 
+      parse_mode: 'Markdown',
+      reply_markup: confirmKeyboard
+    });
+    
     session.step = 10; // Move to confirmation step
+  }
+  
+  // Handle confirmation response
+  else if (data.startsWith('confirm_')) {
+    const answer = data.split('_')[1];
+    
+    // Acknowledge the callback
+    bot.answerCallbackQuery(callbackQuery.id);
+    
+    if (answer === 'yes') {      
+      generateItinerary(chatId);
+    } else {
+      // Update the message to show cancellation
+      bot.editMessageText(`❌ Trip planning canceled. Use /plan to begin a new trip planning.`, {
+        chat_id: chatId,
+        message_id: callbackQuery.message?.message_id,
+        parse_mode: 'Markdown'
+      });
+      
+      // Clear the session
+      userSessions.delete(chatId);
+    }
   }
 });
