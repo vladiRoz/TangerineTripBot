@@ -3,7 +3,7 @@ import TelegramBot from 'node-telegram-bot-api';
 import { createPrompt, UNKNOWN } from './prompt-builder';
 import { TripDataRequest } from './interface';
 import fetch from 'node-fetch';
-import { generateAgodaSection } from './agoda-affiliate';
+import { buildAgodaAffiliateLink, buildAgodaFlightLink } from './agoda-affiliate';
 import { log } from 'console';
 
 // Load environment variables
@@ -90,15 +90,15 @@ function parseResponse(response: string): any {
     if (!jsonMatch) {
       console.error('No JSON found in the response, using fallback structure');
       return {
-        destination: "Unknown destination",
-        duration: "Unknown duration",
-        travelDates: "Unknown dates",
-        vacationStyle: "General tourism",
-        departureCity: "Unknown departure",
-        currency: "USD",
-        numberAdults: 1,
+        destination: "'",
+        duration: "",
+        travelDates: "",
+        vacationStyle: "",
+        departureCity: "",
+        currency: "",
+        numberAdults: 0,
         numberKids: 0,
-        luxuryLevel: 3,
+        luxuryLevel: 0,
         summary: "Unable to generate a detailed itinerary. Please try again.",
         dailyPlan: ["No daily plan available"],
         locations: ["No specific locations available"]
@@ -138,8 +138,17 @@ function createGoogleMapsUrl(location: string): string {
   return `https://www.google.com/maps/search/?api=1&query=${encodedLocation}`;
 }
 
+function generateAgodaSection(agodaLink: string, destination: string): string {
+  let message = `\n🛌 *BOOK YOUR STAY:*\n`;
+  message += `We've partnered with [Agoda.com](${agodaLink}) to offer you the best deals on hotels, flights, and transfers for your trip to ${destination}.\n\n`;
+  message += `[🏝 Book on Agoda](${agodaLink})\n`;
+  
+  return message;
+} 
+
+
 // Function to format the itinerary for Telegram
-function formatItinerary(itinerary: any): string {
+function formatItinerary(itinerary: any, agodaLink: string, flightLink: string): string {
   let message = `🌍 *${itinerary.title}*\n\n`;
   
   message += `✨ *HIGHLIGHTS:*\n`;
@@ -155,7 +164,9 @@ function formatItinerary(itinerary: any): string {
   
   message += `\n📅 *ITINERARY:*\n`;
   itinerary.sample_itinerary.forEach((day: string) => {
-    message += `   ${day}\n`;
+    const dayNumber = day.split(':')[0];
+    const dayText = day.split(':')[1];
+    message += `   **${dayNumber}**: ${dayText}\n`;
   });
   
   message += `\n📍 *LOCATIONS:*\n`;
@@ -166,12 +177,15 @@ function formatItinerary(itinerary: any): string {
   
   message += `\n💰 *BUDGET:*\n`;
   const budget = itinerary.budget;
-  message += `   ✈️ Flights: ${budget.flights}\n`;
-  message += `   🚕 Transportation: ${budget.transportation}\n`;
-  message += `   🏨 Accommodation: ${budget.accommodation}\n`;
-  message += `   🎭 Activities: ${budget.activities}\n`;
-  message += `   🍽️ Food: ${budget.food}\n`;
-  message += `   💵 Total: ${budget.total}\n`;
+  
+  message += `   ✈️ *Flights*: ${budget.flights}\n`;
+  message += `   🔗 [Book flights on Agoda](${flightLink})\n`;
+  message += `   🚕 *Transportation*: ${budget.transportation}\n`;
+  message += `   🏨 *Accommodation*: ${budget.accommodation}\n`;
+  message += `   🔗 [Book hotels on Agoda](${agodaLink})\n`;
+  message += `   🎭 *Activities*: ${budget.activities}\n`;
+  message += `   🍽️ *Food*: ${budget.food}\n`;
+  message += `   💵 *Total*: ${budget.total}\n`;
   
   if (budget.not_enough_budget) {
     message += `\n⚠️ *NOTE:* The provided budget is not sufficient for this trip.\n`;
@@ -531,11 +545,15 @@ async function generateItinerary(chatId: number): Promise<void> {
     
     // Delete loading message
     await bot.deleteMessage(chatId, loadingMessage.message_id);
+
+    const agodaLink = buildAgodaAffiliateLink(tripData);
+
+    const flightLink = buildAgodaFlightLink(session.tripData);
     
-    let message = formatItinerary(itinerary);
-    
+    let message = formatItinerary(itinerary, agodaLink, flightLink);
+
     // Add Agoda affiliate link section
-    message += generateAgodaSection(session.tripData, itinerary.destination || 'your destination');
+    message += generateAgodaSection(agodaLink, itinerary.destination || 'your destination');
     
     // Send the itinerary
     await bot.sendMessage(chatId, message, { 
