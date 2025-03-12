@@ -164,9 +164,16 @@ function formatItinerary(itinerary: any, agodaLink: string, flightLink: string):
   
   message += `\n📅 *ITINERARY:*\n`;
   itinerary.sample_itinerary.forEach((day: string) => {
-    const dayNumber = day.split(':')[0];
-    const dayText = day.split(':')[1];
-    message += `   **${dayNumber}**: ${dayText}\n`;
+    // Check if the day contains a colon to separate day number from description
+    if (day.includes(':')) {
+      const parts = day.split(':');
+      const dayNumber = parts[0].trim();
+      const dayText = parts.slice(1).join(':').trim();
+      message += `   *${dayNumber}*: ${dayText}\n`;
+    } else {
+      // If no colon, just add the day as is
+      message += `   ${day}\n`;
+    }
   });
   
   message += `\n📍 *LOCATIONS:*\n`;
@@ -179,10 +186,10 @@ function formatItinerary(itinerary: any, agodaLink: string, flightLink: string):
   const budget = itinerary.budget;
   
   message += `   ✈️ *Flights*: ${budget.flights}\n`;
-  message += `   🔗 [Book flights on Agoda](${flightLink})\n`;
+  message += `   🔗 [Book flights](${flightLink})\n`;
   message += `   🚕 *Transportation*: ${budget.transportation}\n`;
   message += `   🏨 *Accommodation*: ${budget.accommodation}\n`;
-  message += `   🔗 [Book hotels on Agoda](${agodaLink})\n`;
+  message += `   🔗 [Book hotels](${agodaLink})\n`;
   message += `   🎭 *Activities*: ${budget.activities}\n`;
   message += `   🍽️ *Food*: ${budget.food}\n`;
   message += `   💵 *Total*: ${budget.total}\n`;
@@ -385,24 +392,24 @@ function askCurrency(chatId: number): void {
   const inlineKeyboard = {
     inline_keyboard: [
       [
-        { text: '💵 USD (US Dollar)', callback_data: 'currency_USD' },
-        { text: '💶 EUR (Euro)', callback_data: 'currency_EUR' }
+        { text: '💵 USD', callback_data: 'currency_USD' },
+        { text: '💶 EUR', callback_data: 'currency_EUR' }
       ],
       [
-        { text: '💷 GBP (British Pound)', callback_data: 'currency_GBP' },
-        { text: '💴 JPY (Japanese Yen)', callback_data: 'currency_JPY' }
+        { text: '💷 GBP', callback_data: 'currency_GBP' },
+        { text: '💴 JPY', callback_data: 'currency_JPY' }
       ],
       [
-        { text: '🇦🇺 AUD (Australian Dollar)', callback_data: 'currency_AUD' },
-        { text: '🇨🇦 CAD (Canadian Dollar)', callback_data: 'currency_CAD' }
+        { text: '🇦🇺 AUD', callback_data: 'currency_AUD' },
+        { text: '🇨🇦 CAD', callback_data: 'currency_CAD' }
       ],
       [
-        { text: '🇨🇭 CHF (Swiss Franc)', callback_data: 'currency_CHF' },
-        { text: '🇨🇳 CNY (Chinese Yuan)', callback_data: 'currency_CNY' }
+        { text: '🇨🇭 CHF', callback_data: 'currency_CHF' },
+        { text: '🇨🇳 CNY', callback_data: 'currency_CNY' }
       ],
       [
-        { text: '🇮🇳 INR (Indian Rupee)', callback_data: 'currency_INR' },
-        { text: '🇧🇷 BRL (Brazilian Real)', callback_data: 'currency_BRL' }
+        { text: '🇮🇳 INR', callback_data: 'currency_INR' },
+        { text: '🇧🇷 BRL', callback_data: 'currency_BRL' }
       ]
     ]
   };
@@ -978,7 +985,15 @@ bot.on('callback_query', (callbackQuery) => {
     // Acknowledge the callback
     bot.answerCallbackQuery(callbackQuery.id);
     
-    if (answer === 'yes') {      
+    if (answer === 'yes') {
+      // Remove the inline keyboard by editing the message
+      bot.editMessageText(callbackQuery.message?.text || 'Trip Summary', {
+        chat_id: chatId,
+        message_id: callbackQuery.message?.message_id,
+        parse_mode: 'Markdown',
+        reply_markup: { inline_keyboard: [] } // Empty inline keyboard
+      });
+      
       generateItinerary(chatId);
     } else {
       // Update the message to show cancellation
