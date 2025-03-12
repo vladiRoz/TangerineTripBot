@@ -3,6 +3,8 @@ import TelegramBot from 'node-telegram-bot-api';
 import { createPrompt, UNKNOWN } from './prompt-builder';
 import { TripDataRequest } from './interface';
 import fetch from 'node-fetch';
+import { generateAgodaSection } from './agoda-affiliate';
+import { log } from 'console';
 
 // Load environment variables
 config();
@@ -86,14 +88,47 @@ function parseResponse(response: string): any {
     // Extract JSON from the response (in case there's additional text)
     const jsonMatch = response.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      throw new Error('No JSON found in the response');
+      console.error('No JSON found in the response, using fallback structure');
+      return {
+        destination: "Unknown destination",
+        duration: "Unknown duration",
+        travelDates: "Unknown dates",
+        vacationStyle: "General tourism",
+        departureCity: "Unknown departure",
+        currency: "USD",
+        numberAdults: 1,
+        numberKids: 0,
+        luxuryLevel: 3,
+        summary: "Unable to generate a detailed itinerary. Please try again.",
+        dailyPlan: ["No daily plan available"],
+        locations: ["No specific locations available"]
+      };
     }
     
-    return JSON.parse(jsonMatch[0]);
+    // Parse the JSON
+    const parsedData = JSON.parse(jsonMatch[0]);
+    console.log('Parsed data:', JSON.stringify(parsedData, null, 2));
+    
+    // Return the parsed data directly without modifying its structure
+    return parsedData;
   } catch (error) {
     console.error('Error parsing JSON response:', error);
     console.error('Raw response:', response);
-    throw error;
+    // Return a fallback structure instead of throwing
+    return {
+      destination: "Unknown destination",
+      duration: "Unknown duration",
+      travelDates: "Unknown dates",
+      vacationStyle: "General tourism",
+      departureCity: "Unknown departure",
+      currency: "USD",
+      numberAdults: 1,
+      numberKids: 0,
+      luxuryLevel: 3,
+      summary: "Error generating itinerary. Please try again.",
+      dailyPlan: ["No daily plan available"],
+      locations: ["No specific locations available"]
+    };
   }
 }
 
@@ -172,7 +207,7 @@ function startNewSession(chatId: number): void {
 
 // Function to ask for destination
 function askDestination(chatId: number): void {
-  bot.sendMessage(chatId, '1️⃣ What is your *destination*? (or leave blank for suggestions)', { parse_mode: 'Markdown' })
+  bot.sendMessage(chatId, '1️⃣ What is your *destination*?', { parse_mode: 'Markdown' })
     .then(message => {
       const session = userSessions.get(chatId);
       if (session) {
@@ -454,10 +489,13 @@ function askLuxuryLevel(chatId: number): void {
 
 // Function to generate itinerary
 async function generateItinerary(chatId: number): Promise<void> {
-  const session = userSessions.get(chatId);
-  if (!session) return;
-  
   try {
+    const session = userSessions.get(chatId);
+    if (!session) {
+      bot.sendMessage(chatId, 'Session expired. Please use /plan to start again.');
+      return;
+    }
+
     // Send loading message
     const loadingMessage = await bot.sendMessage(chatId, '🔄 Generating your personalized travel itinerary... Please wait...');
     
@@ -476,26 +514,34 @@ async function generateItinerary(chatId: number): Promise<void> {
       localTravel: session.tripData.localTravel || false,
       suggestDestination: !session.tripData.destination || session.tripData.destination === UNKNOWN
     };
+
+    console.log('tripData', tripData);
     
     // Generate prompt
     const prompt = createPrompt(tripData);
+
+    console.log('prompt', prompt);
     
     // Call OpenAI API
     const response = await callOpenAI(prompt);
+
+    console.log('response', response);
     
     // Parse the response
     const itinerary = parseResponse(response);
     
-    // Format the itinerary for Telegram
-    const formattedItinerary = formatItinerary(itinerary);
-    
     // Delete loading message
     await bot.deleteMessage(chatId, loadingMessage.message_id);
     
+    let message = formatItinerary(itinerary);
+    
+    // Add Agoda affiliate link section
+    message += generateAgodaSection(session.tripData, itinerary.destination || 'your destination');
+    
     // Send the itinerary
-    await bot.sendMessage(chatId, formattedItinerary, { 
-      parse_mode: 'Markdown',
-      disable_web_page_preview: true // Prevent link previews from cluttering the message
+    await bot.sendMessage(chatId, message, { 
+      parse_mode: 'Markdown', 
+      disable_web_page_preview: false 
     });
     
     // Send a message to start a new trip
@@ -610,6 +656,8 @@ bot.on('message', (msg) => {
     bot.sendMessage(chatId, 'Please use /plan to begin planning your trip.');
     return;
   }
+
+  console.log('vladi');
   
   console.log(`Processing message for step ${session.step}: "${msg.text}"`);
   
