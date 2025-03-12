@@ -156,7 +156,7 @@ export function generateAgodaSection(tripData: Partial<TripDataRequest>, destina
   
   let message = `\n🛌 *BOOK YOUR STAY:*\n`;
   message += `We've partnered with [Agoda.com](${agodaLink}) to offer you the best deals on hotels, flights, and transfers for your trip to ${destination}.\n\n`;
-  message += `[🔗 Book on Agoda](${agodaLink})\n`;
+  message += `[🏝 Book on Agoda](${agodaLink})\n`;
   
   return message;
 } 
