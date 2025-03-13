@@ -109,3 +109,10 @@ Created by [vladiRoz](https://github.com/vladiRoz)
 
 ISC 
 
+
+
+// click extra time to remove selection of vacation style if possible
+// make basic itinary TBD
+// separate into components
+// unit tests
+// deployment

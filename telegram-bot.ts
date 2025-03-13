@@ -854,17 +854,25 @@ bot.on('callback_query', (callbackQuery) => {
       session.tripData.vacationStyle = [];
     }
     
-    // Add the style if it's not already in the array
-    if (!session.tripData.vacationStyle.includes(style)) {
+    // Check if the style is already in the array
+    const styleIndex = session.tripData.vacationStyle.indexOf(style);
+    
+    if (styleIndex === -1) {
+      // Style not in array, add it
       session.tripData.vacationStyle.push(style);
+      bot.answerCallbackQuery(callbackQuery.id, { text: `Added: ${style}` });
+    } else {
+      // Style already in array, remove it
+      session.tripData.vacationStyle.splice(styleIndex, 1);
+      bot.answerCallbackQuery(callbackQuery.id, { text: `Removed: ${style}` });
     }
     
-    // Acknowledge the callback
-    bot.answerCallbackQuery(callbackQuery.id, { text: `Added: ${style}` });
-    
     // Update the message to show current selections but keep the keyboard
-    const stylesText = session.tripData.vacationStyle.join(', ');
-    bot.editMessageText(`4️⃣ Vacation styles: *${stylesText}*\n\nSelect more or click "Done" when finished.`, {
+    const stylesText = session.tripData.vacationStyle.length > 0 
+      ? session.tripData.vacationStyle.join(', ')
+      : 'No styles selected';
+      
+    bot.editMessageText(`4️⃣ Vacation styles: *${stylesText}*\n\nSelect more or click "Done" when finished. Click a style again to remove it.`, {
       chat_id: chatId,
       message_id: callbackQuery.message?.message_id,
       parse_mode: 'Markdown',
