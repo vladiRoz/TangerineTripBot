@@ -153,14 +153,14 @@ function formatItinerary(itinerary: any, agodaLink: string, flightLink: string):
   
   message += `✨ *HIGHLIGHTS:*\n`;
   itinerary.highlights.forEach((highlight: string, index: number) => {
-    message += `   ${index + 1}. ${highlight}\n`;
+    message += `${index + 1}. ${highlight}\n`;
   });
   
   message += `\n🗓️ *BEST TIME TO VISIT:*\n`;
-  message += `   ${itinerary.timing}\n`;
+  message += `${itinerary.timing}\n`;
   
   message += `\n🚌 *GETTING AROUND:*\n`;
-  message += `   ${itinerary.getting_around}\n`;
+  message += `${itinerary.getting_around}\n`;
   
   message += `\n📅 *ITINERARY:*\n`;
   itinerary.sample_itinerary.forEach((day: string) => {
@@ -169,30 +169,30 @@ function formatItinerary(itinerary: any, agodaLink: string, flightLink: string):
       const parts = day.split(':');
       const dayNumber = parts[0].trim();
       const dayText = parts.slice(1).join(':').trim();
-      message += `   *${dayNumber}*: ${dayText}\n`;
+      message += `*${dayNumber}*: ${dayText}\n`;
     } else {
       // If no colon, just add the day as is
-      message += `   ${day}\n`;
+      message += `${day}\n`;
     }
   });
   
   message += `\n📍 *LOCATIONS:*\n`;
   itinerary.locations.forEach((location: string, index: number) => {
     const locationUrl = createGoogleMapsUrl(location);
-    message += `   ${index + 1}. [${location}](${locationUrl})\n`;
+    message += `${index + 1}. [${location}](${locationUrl})\n`;
   });
   
   message += `\n💰 *BUDGET:*\n`;
   const budget = itinerary.budget;
   
-  message += `   ✈️ *Flights*: ${budget.flights}\n`;
-  message += `   🔗 [Book flights](${flightLink})\n`;
-  message += `   🚕 *Transportation*: ${budget.transportation}\n`;
-  message += `   🏨 *Accommodation*: ${budget.accommodation}\n`;
-  message += `   🔗 [Book hotels](${agodaLink})\n`;
-  message += `   🎭 *Activities*: ${budget.activities}\n`;
-  message += `   🍽️ *Food*: ${budget.food}\n`;
-  message += `   💵 *Total*: ${budget.total}\n`;
+  message += `✈️ *Flights*: ${budget.flights}\n`;
+  message += `🔗 [Book flights](${flightLink})\n`;
+  message += `🚕 *Transportation*: ${budget.transportation}\n`;
+  message += `🏨 *Accommodation*: ${budget.accommodation}\n`;
+  message += `🔗 [Book hotels](${agodaLink})\n`;
+  message += `🎭 *Activities*: ${budget.activities}\n`;
+  message += `🍽️ *Food*: ${budget.food}\n`;
+  message += `💵 *Total*: ${budget.total}\n`;
   
   if (budget.not_enough_budget) {
     message += `\n⚠️ *NOTE:* The provided budget is not sufficient for this trip.\n`;
