@@ -1,6 +1,30 @@
 import { AgodaCityIds } from './cities';
 import { TripDataRequest } from './interface';
 
+/**
+ * Extracts city ID from destination name
+ * @param destination The destination city name
+ * @returns The city ID or 0 if not found
+ */
+function extractCityId(destination: string | undefined): number {
+  if (!destination) return 0;
+  
+  const dest = destination.toLowerCase();
+  
+  // Try to find exact match
+  if (AgodaCityIds.has(dest)) {
+    return AgodaCityIds.get(dest)?.cityId || 0;
+  }
+  
+  // Try to find partial match
+  for (const [city, info] of AgodaCityIds.entries()) {
+    if (dest.includes(city) || city.includes(dest)) {
+      return info.cityId;
+    }
+  }
+  
+  return 0;
+}
 
 /**
  * Builds an Agoda affiliate link based on trip data
@@ -23,22 +47,8 @@ export function buildAgodaAffiliateLink(tripData: Partial<TripDataRequest>): str
     return date.toISOString().split('T')[0];
   };
   
-  // Parse destination to find city ID
-  let cityId = 0;
-  const destination = tripData.destination?.toLowerCase() || '';
-  
-  // Try to find exact match
-  if (AgodaCityIds.has(destination)) {
-    cityId = AgodaCityIds.get(destination)?.cityId || 0;
-  } else {
-    // Try to find partial match
-    for (const [city, info] of AgodaCityIds.entries()) {
-      if (destination.includes(city) || city.includes(destination)) {
-        cityId = info.cityId;
-        break;
-      }
-    }
-  }
+  // Get city ID
+  const cityId = extractCityId(tripData.destination);
   
   // Calculate check-in and check-out dates
   let checkIn = defaultCheckIn;
@@ -115,7 +125,7 @@ export function buildAgodaAffiliateLink(tripData: Partial<TripDataRequest>): str
  * @param tripData The trip data from the user session
  * @returns A formatted Agoda deep link for flights with affiliate ID and trip parameters
  */
-  export function buildAgodaFlightLink(tripData: Partial<TripDataRequest>): string {
+export function buildAgodaFlightLink(tripData: Partial<TripDataRequest>): string {
   // Affiliate ID
   const cid = '1937751';
   
@@ -175,14 +185,35 @@ export function buildAgodaAffiliateLink(tripData: Partial<TripDataRequest>): str
     returnDate.setDate(departureDate.getDate() + duration);
   }
   
-  // Build the URL for flights
-  const origin = encodeURIComponent(tripData.departureCity || 'any');
-  const destination = encodeURIComponent(tripData.destination || 'any');
-  const departureStr = formatDate(departureDate);
-  const returnStr = formatDate(returnDate);
-  const adults = tripData.numberAdults || 1;
-  const children = tripData.numberKids || 0;
+  // Get city IDs
+  // const originCityId = extractCityId(tripData.departureCity);
+  // const destinationCityId = extractCityId(tripData.destination);
   
-  // Agoda flight URL format
-  return `https://www.agoda.com/flights?cid=${cid}&origin=${origin}&destination=${destination}&departDate=${departureStr}&returnDate=${returnStr}&adults=${adults}&children=${children}`;
+  // Build the URL parameters
+  const params = new URLSearchParams();
+  params.append('cid', cid);
+  
+  // Add origin and destination
+  // if (originCityId > 0) {
+    // departureFrom=TLV
+    // params.append('departureFrom', originCityId.toString());
+  // }
+  
+  // if (destinationCityId > 0) {
+    // arrivalTo=SYD
+    // params.append('arrivalTo', destinationCityId.toString());
+  // }
+  
+  // Add dates
+  params.append('departDate', formatDate(departureDate));
+  params.append('returnDate', formatDate(returnDate));
+  
+  // Add passengers
+  params.append('adults', (tripData.numberAdults || 1).toString());
+  if (tripData.numberKids && tripData.numberKids > 0) {
+    params.append('children', tripData.numberKids.toString());
+  }
+  
+  // Build the final URL
+  return `https://www.agoda.com/flights/results?${params.toString()}`;
 }

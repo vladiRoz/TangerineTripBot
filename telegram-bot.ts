@@ -311,7 +311,7 @@ function askTimeOfYear(chatId: number): void {
     ]
   };
 
-  bot.sendMessage(chatId, '3️⃣ What are your *travel dates / season / month*?', { 
+  bot.sendMessage(chatId, '3️⃣ What are your *season / month*?', { 
     parse_mode: 'Markdown',
     reply_markup: inlineKeyboard
   })
