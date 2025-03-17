@@ -40,11 +40,6 @@ export function buildAgodaAffiliateLink(tripData: Partial<TripDataRequest>): str
     }
   }
   
-  // If no city ID found, default to Bangkok (popular destination)
-  if (cityId === 0) {
-    cityId = 9395; // Bangkok
-  }
-  
   // Calculate check-in and check-out dates
   let checkIn = defaultCheckIn;
   let checkOut = defaultCheckOut;
@@ -94,7 +89,9 @@ export function buildAgodaAffiliateLink(tripData: Partial<TripDataRequest>): str
   params.append('pcs', '1');
   params.append('cid', cid);
   params.append('hl', 'en-us');
-  params.append('city', cityId.toString());
+  if (cityId > 0) {
+    params.append('city', cityId.toString());
+  }
   params.append('checkIn', formatDate(checkIn));
   params.append('checkOut', formatDate(checkOut));
   params.append('adults', (tripData.numberAdults || 2).toString());
