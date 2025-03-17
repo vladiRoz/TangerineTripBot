@@ -1,38 +1,6 @@
+import { AgodaCityIds } from './cities';
 import { TripDataRequest } from './interface';
 
-// Agoda city ID mapping (common destinations)
-export const agodaCityIds: Record<string, number> = {
-  'bangkok': 9395,
-  'london': 4548,
-  'paris': 1633,
-  'new york': 10451,
-  'tokyo': 4155,
-  'singapore': 4064,
-  'dubai': 4376,
-  'rome': 1722,
-  'bali': 17193,
-  'phuket': 8064,
-  'barcelona': 1718,
-  'hong kong': 1710,
-  'istanbul': 3962,
-  'kuala lumpur': 4078,
-  'seoul': 4168,
-  'amsterdam': 1704,
-  'miami': 10402,
-  'los angeles': 10401,
-  'berlin': 1712,
-  'sydney': 14370,
-  'madrid': 1725,
-  'venice': 1747,
-  'las vegas': 10389,
-  'vienna': 1726,
-  'prague': 1713,
-  'milan': 1730,
-  'budapest': 1705,
-  'lisbon': 1724,
-  'florence': 1719,
-  'san francisco': 10409
-};
 
 /**
  * Builds an Agoda affiliate link based on trip data
@@ -60,13 +28,13 @@ export function buildAgodaAffiliateLink(tripData: Partial<TripDataRequest>): str
   const destination = tripData.destination?.toLowerCase() || '';
   
   // Try to find exact match
-  if (agodaCityIds[destination]) {
-    cityId = agodaCityIds[destination];
+  if (AgodaCityIds.has(destination)) {
+    cityId = AgodaCityIds.get(destination)?.cityId || 0;
   } else {
     // Try to find partial match
-    for (const [city, id] of Object.entries(agodaCityIds)) {
+    for (const [city, info] of AgodaCityIds.entries()) {
       if (destination.includes(city) || city.includes(destination)) {
-        cityId = id;
+        cityId = info.cityId;
         break;
       }
     }

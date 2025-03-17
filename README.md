@@ -109,10 +109,37 @@ Created by [vladiRoz](https://github.com/vladiRoz)
 
 ISC 
 
+## Agoda Integration
 
+TangerineBot integrates with Agoda's affiliate program to provide hotel and flight booking options for users. The bot uses city IDs from Agoda to generate accurate booking links.
 
-// click extra time to remove selection of vacation style if possible
-// make basic itinary TBD
+### Updating Agoda City IDs
+
+To update the list of city IDs from Agoda's Content API:
+
+1. Make sure you have API credentials from the [Agoda Partner Portal](https://partners.agoda.com/DeveloperPortal)
+2. Add your credentials to the `.env` file:
+   ```
+   AGODA_API_KEY=your_agoda_api_key_here
+   AGODA_API_SECRET=your_agoda_api_secret_here
+   ```
+3. Run the city ID fetching script:
+   ```bash
+   # For JavaScript version
+   node fetch-agoda-cities.js
+   
+   # For TypeScript version
+   npx ts-node fetch-agoda-cities.ts
+   ```
+4. The script will generate three files:
+   - `agoda-cities.json`: Complete data for all cities
+   - `agoda-city-ids.json`: Mapping of city names to IDs
+   - `agoda-city-ids.ts`: TypeScript code ready to use in the bot
+
+5. Review and update the `agodaCityIds` object in `agoda-affiliate.ts` with the new city IDs.
+
 // separate into components
 // unit tests
 // deployment
+// rate limiting
+// 10 trip planning then premium
