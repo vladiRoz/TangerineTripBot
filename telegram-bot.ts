@@ -680,8 +680,6 @@ bot.on('message', (msg) => {
     bot.sendMessage(chatId, 'Please use /plan to begin planning your trip.');
     return;
   }
-
-  console.log('vladi');
   
   console.log(`Processing message for step ${session.step}: "${msg.text}"`);
   
@@ -695,10 +693,18 @@ bot.on('message', (msg) => {
       askDuration(chatId);
       break;
     case 2: // Duration
-      session.tripData.duration = msg.text.trim() || UNKNOWN;
-      session.step++;
-      console.log(`Updated step to ${session.step}, asking for time of year`);
-      askTimeOfYear(chatId);
+      const durationInput = msg.text.trim();
+      if (durationInput) {
+        const duration = parseInt(durationInput, 10);
+        if (!isNaN(duration) && duration > 0 && duration <= 100) {
+          session.tripData.duration = `${duration} days`;
+          session.step++;
+          console.log(`Updated step to ${session.step}, asking for time of year`);
+          askTimeOfYear(chatId);
+        } else {
+          bot.sendMessage(chatId, 'Please enter a number between 1 and 14 days, or use the buttons below.');
+        }
+      }
       break;
     case 3: // Time of Year
       session.tripData.timeOfYear = msg.text.trim() || UNKNOWN;
@@ -725,16 +731,30 @@ bot.on('message', (msg) => {
       askNumberAdults(chatId);
       break;
     case 7: // Number of Adults
-      const numberAdults = parseInt(msg.text.trim(), 10);
-      session.tripData.numberAdults = isNaN(numberAdults) ? 1 : numberAdults;
-      session.step++;
-      askNumberKids(chatId);
+      const adultsInput = msg.text.trim();
+      if (adultsInput) {
+        const numberAdults = parseInt(adultsInput, 10);
+        if (!isNaN(numberAdults) && numberAdults > 0 && numberAdults <= 20) {
+          session.tripData.numberAdults = numberAdults;
+          session.step++;
+          askNumberKids(chatId);
+        } else {
+          bot.sendMessage(chatId, 'Please enter a number between 1 and 5 adults, or use the buttons below.');
+        }
+      }
       break;
     case 8: // Number of Kids
-      const numberKids = parseInt(msg.text.trim(), 10);
-      session.tripData.numberKids = isNaN(numberKids) ? 0 : numberKids;
-      session.step++;
-      askLuxuryLevel(chatId);
+      const kidsInput = msg.text.trim();
+      if (kidsInput) {
+        const numberKids = parseInt(kidsInput, 10);
+        if (!isNaN(numberKids) && numberKids >= 0 && numberKids <= 20) {
+          session.tripData.numberKids = numberKids;
+          session.step++;
+          askLuxuryLevel(chatId);
+        } else {
+          bot.sendMessage(chatId, 'Please enter a number between 0 and 4 children, or use the buttons below.');
+        }
+      }
       break;
     case 9: // Luxury Level
       const luxuryLevel = parseInt(msg.text.trim(), 10);
