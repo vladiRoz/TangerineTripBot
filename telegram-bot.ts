@@ -9,6 +9,10 @@ import { log } from 'console';
 // Load environment variables
 config();
 
+// Check if running in production (PM2) or development
+const isProduction = process.env.NODE_ENV === 'production';
+console.log(`Running in ${isProduction ? 'production' : 'development'} mode`);
+
 // Telegram Bot Token
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 if (!TELEGRAM_TOKEN) {
@@ -29,6 +33,28 @@ const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 // Remove any existing keyboards when the bot starts
 console.log('🍊 TangerineBot is starting...');
 console.log('Removing any existing keyboards for active chats...');
+
+// Error handling for the bot
+bot.on('polling_error', (error) => {
+  console.error('Polling error:', error);
+});
+
+bot.on('error', (error) => {
+  console.error('Bot error:', error);
+});
+
+// Setup process handlers for graceful shutdown
+process.on('SIGINT', () => {
+  console.log('SIGINT received. Stopping bot...');
+  bot.stopPolling();
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received. Stopping bot...');
+  bot.stopPolling();
+  process.exit(0);
+});
 
 // User session data
 interface UserSession {

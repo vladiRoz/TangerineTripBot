@@ -51,23 +51,61 @@ TangerineBot is an AI-powered travel assistant that helps users plan their perfe
 5. BotFather will provide you with a token - copy this token
 6. Add the token to your `.env` file as `TELEGRAM_TOKEN`
 
-### Running the Bot
+### Running Locally (macOS or Linux)
 
-1. Start the Telegram bot:
+1. Create a `.env` file based on the example:
    ```
-   npm start
+   cp .env.example .env
    ```
-   
-   Or use the provided script:
+   Then edit the `.env` file and add your API keys.
+
+2. Run the bot using the provided script:
    ```
    ./start-telegram.sh
    ```
+   
+   Or, manually:
+   ```
+   npm install
+   npm start
+   ```
 
-2. Open Telegram and search for your bot by username.
+### Deploying to a Server (Ubuntu)
 
-3. Start a conversation with your bot by sending the `/start` command.
+1. SSH into your server
+   ```
+   ssh user@your-server-ip
+   ```
 
-4. Follow the bot's instructions to provide your travel preferences.
+2. Clone the repository
+   ```
+   git clone https://github.com/yourusername/TangerineTripBot.git
+   cd TangerineTripBot
+   ```
+
+3. Create a `.env` file with your API keys
+   ```
+   cp .env.example .env
+   nano .env
+   ```
+
+4. Run the deployment script
+   ```
+   ./deploy-server.sh
+   ```
+
+5. Check the logs
+   ```
+   pm2 logs telegram-bot
+   ```
+
+### Managing the Bot on the Server
+
+- Check status: `pm2 status`
+- View logs: `pm2 logs telegram-bot`
+- Restart bot: `pm2 restart telegram-bot`
+- Stop bot: `pm2 stop telegram-bot`
+- Start bot: `pm2 start telegram-bot`
 
 ## Bot Commands
 

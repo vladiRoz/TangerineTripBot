@@ -7,7 +7,9 @@
     "build": "tsc",
     "start": "npm run build && node dist/telegram-bot.js",
     "dev": "ts-node telegram-bot.ts",
-    "telegram": "ts-node telegram-bot.ts"
+    "telegram": "ts-node telegram-bot.ts",
+    "start:ts": "ts-node telegram-bot.ts",
+    "deploy": "pm2 start dist/telegram-bot.js --name \"telegram-bot\""
   },
   "keywords": [
     "travel",
