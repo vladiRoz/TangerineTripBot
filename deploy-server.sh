@@ -20,13 +20,27 @@ if ! command -v pm2 &> /dev/null; then
   sudo npm install -g pm2
 fi
 
+# Create a temporary swap file (2GB) to handle memory-intensive operations
+echo "Setting up temporary swap space (2GB)..."
+sudo fallocate -l 2G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo "Swap space activated."
+
 # Install dependencies
 echo "Installing dependencies..."
 npm install
 
-# Build the project
+# Build the project with increased memory limit
 echo "Building the project..."
+export NODE_OPTIONS="--max-old-space-size=512"
 npm run build
+
+# Remove the temporary swap file
+echo "Removing temporary swap space..."
+sudo swapoff /swapfile
+sudo rm /swapfile
 
 # Set environment to production
 export NODE_ENV=production
