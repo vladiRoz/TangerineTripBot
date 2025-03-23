@@ -28,7 +28,10 @@ export NODE_ENV=production
 # Start with PM2 using ts-node
 echo "Starting the bot with PM2 using ts-node..."
 pm2 delete telegram-bot 2>/dev/null || true
-pm2 start telegram-bot.ts --interpreter ts-node --name "telegram-bot" --node-args="--max-old-space-size=400"
+
+# The correct way to pass memory limits to ts-node with PM2
+export NODE_OPTIONS="--max-old-space-size=400"
+pm2 start telegram-bot.ts --interpreter ts-node --name "telegram-bot"
 
 # Save PM2 startup configuration
 echo "Saving PM2 configuration..."
