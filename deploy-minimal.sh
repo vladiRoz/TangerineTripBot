@@ -32,14 +32,15 @@ export NODE_ENV=production
 echo "Starting the bot with PM2 in minimal mode..."
 pm2 delete telegram-bot 2>/dev/null || true
 
-# Configure very small memory limits
-export NODE_OPTIONS="--max-old-space-size=256"
+# Configure memory limits
+export NODE_OPTIONS="--max-old-space-size=512"
 
-# Start with pm2 with minimal memory settings
+# Start with PM2 using ts-node with transpile-only to skip type checking
 pm2 start telegram-bot.ts \
   --interpreter ts-node \
   --name "telegram-bot" \
-  --max-memory-restart 300M \
+  --node-args="--transpile-only" \
+  --max-memory-restart 400M \
   --env NODE_ENV=production
 
 # Save PM2 startup configuration
