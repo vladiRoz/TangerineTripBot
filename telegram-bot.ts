@@ -330,7 +330,7 @@ function askTimeOfYear(chatId: number): void {
       ],
       [
         { text: '❄️ Winter', callback_data: 'season_Winter' },
-        { text: '🌱 Spring', callback_data: 'season_Spring' },
+        { text: '🌸 Spring', callback_data: 'season_Spring' },
         { text: '☀️ Summer', callback_data: 'season_Summer' },
         { text: '🍂 Fall', callback_data: 'season_Fall' }
       ]
