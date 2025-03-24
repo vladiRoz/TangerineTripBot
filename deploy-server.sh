@@ -32,6 +32,9 @@ pm2 delete telegram-bot 2>/dev/null || true
 # Configure memory limits for Node.js
 export NODE_OPTIONS="--max-old-space-size=512"
 
+# Set ts-node compiler options to bypass moduleResolution issues
+export TS_NODE_COMPILER_OPTIONS='{"module":"CommonJS","moduleResolution":"node"}'
+
 # Start with PM2 using ts-node with transpile-only to skip type checking
 pm2 start telegram-bot.ts \
   --interpreter ts-node \
