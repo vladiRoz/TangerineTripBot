@@ -202,7 +202,7 @@ function formatItinerary(itinerary: any, agodaLink: string, flightLink: string):
     }
   });
   
-  message += `\n📍 *LOCATIONS:*\n`;
+  message += `\n📍*LOCATIONS:*\n`;
   itinerary.locations.forEach((location: string, index: number) => {
     const locationUrl = createGoogleMapsUrl(location);
     message += `${index + 1}. [${location}](${locationUrl})\n`;
