@@ -793,20 +793,6 @@ bot.on('message', (msg) => {
     case 9: // Luxury Level
       const luxuryLevel = parseInt(msg.text.trim(), 10);
       session.tripData.luxuryLevel = isNaN(luxuryLevel) ? undefined : luxuryLevel;
-      
-      // Show summary and confirm
-      let summary = '📋 *Trip Planning Summary:*\n\n';
-      summary += `🌍 Destination: ${session.tripData.destination}\n`;
-      summary += `⏱️ Duration: ${session.tripData.duration}\n`;
-      summary += `🗓️ Preferred Timing: ${session.tripData.timeOfYear}\n`;
-      summary += `🏖️ Vacation Style: ${session.tripData.vacationStyle?.join(', ')}\n`;
-      summary += `🛫 Departure City: ${session.tripData.departureCity}\n`;
-      summary += `💲 Currency: ${session.tripData.currency}\n`;
-      summary += `👨‍👩‍👧‍👦 Travelers: ${session.tripData.numberAdults} adults, ${session.tripData.numberKids} children\n`;
-      summary += `🏨 Hotel Rating: ${session.tripData.luxuryLevel || 'Not specified'} stars\n\n`;
-      summary += 'Is this correct? Type *YES* to generate your itinerary or *NO* to start over.';
-
-      bot.sendMessage(chatId, summary, { parse_mode: 'Markdown' });
       session.step++;
       break;
     case 10: // Confirmation
@@ -1014,10 +1000,10 @@ bot.on('callback_query', (callbackQuery) => {
     let summary = '*Trip Summary:*\n\n';
     summary += `🌍 Destination: ${session.tripData.destination}\n`;
     summary += `⏱️ Duration: ${session.tripData.duration}\n`;
-    summary += `🗓️ Travel Dates/Season: ${session.tripData.timeOfYear}\n`;
+    summary += `🗓️ Preferred Timing: ${session.tripData.timeOfYear}\n`;
     summary += `🏖️ Vacation Style: ${session.tripData.vacationStyle?.join(', ')}\n`;
     summary += `🛫 Departure City: ${session.tripData.departureCity}\n`;
-    summary += `💵 Currency: ${session.tripData.currency}\n`;
+    summary += `💲 Currency: ${session.tripData.currency}\n`;
     summary += `👨‍👩‍👧‍👦 Travelers: ${session.tripData.numberAdults} adults, ${session.tripData.numberKids} children\n`;
     summary += `🛌 Hotel Rating: ${session.tripData.luxuryLevel || 'Not specified'} ⭐\n\n`;
     summary += 'Is this correct?';
