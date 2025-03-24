@@ -357,18 +357,18 @@ function askVacationStyle(chatId: number): void {
     inline_keyboard: [
       [
         { text: '👨‍👩‍👧‍👦 Family Trip', callback_data: 'style_Family Trip' },
-        { text: '💑 Romantic Getaway', callback_data: 'style_Romantic Getaway' }
+        { text: '🧡 Romantic Getaway', callback_data: 'style_Romantic Getaway' }
       ],
       [
         { text: '🌆 City', callback_data: 'style_City' },
         { text: '🏖️ Beaches & Islands', callback_data: 'style_Beach&Islands' }
       ],
       [
-        { text: '🏺 Local Culture', callback_data: 'style_Cultural' },
+        { text: '🏛️ Local Culture', callback_data: 'style_Cultural' },
         { text: '🛍️ Shopping & Fashion', callback_data: 'style_Shopping&Fashion' }, 
       ],
       [
-        { text: '🦁 Nature & Wildlife', callback_data: 'style_Nature&Wildlife' },
+        { text: '🌲 Nature & Wildlife', callback_data: 'style_Nature&Wildlife' },
         { text: '🥾 Tracks & Hikes', callback_data: 'style_Tracks&Hikes' }
       ],
       [
