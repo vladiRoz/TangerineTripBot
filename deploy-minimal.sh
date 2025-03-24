@@ -25,25 +25,6 @@ echo "Configuring system memory management..."
 sudo sysctl vm.swappiness=60
 echo 'vm.swappiness=60' | sudo tee -a /etc/sysctl.conf
 
-# Update system packages
-echo "Updating system packages..."
-sudo apt update
-
-# Install Node.js if not installed (minimal approach)
-if ! command -v node &> /dev/null; then
-  echo "Installing Node.js..."
-  curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-  sudo apt install -y nodejs
-fi
-
-# Install global dependencies
-echo "Installing global dependencies..."
-sudo npm install -g pm2 ts-node typescript
-
-# Install only production dependencies to save memory
-echo "Installing production dependencies only..."
-npm install --production
-
 # Set environment to production
 export NODE_ENV=production
 
@@ -58,7 +39,6 @@ export NODE_OPTIONS="--max-old-space-size=256"
 pm2 start telegram-bot.ts \
   --interpreter ts-node \
   --name "telegram-bot" \
-  --node-args="--no-warnings --optimize_for_size" \
   --max-memory-restart 300M \
   --env NODE_ENV=production
 
