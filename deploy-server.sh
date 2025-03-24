@@ -25,17 +25,11 @@ echo "Configuring system memory management..."
 sudo sysctl vm.swappiness=60
 echo 'vm.swappiness=60' | sudo tee -a /etc/sysctl.conf
 
-# Set environment to production
-export NODE_ENV=production
-
-# Set ts-node compiler options to bypass moduleResolution issues
-export TS_NODE_COMPILER_OPTIONS='{"module":"CommonJS","moduleResolution":"node"}'
-
 # Start with PM2 using minimal settings
 echo "Starting the bot with PM2 in minimal mode..."
 pm2 delete telegram-bot 2>/dev/null || true
 
-# Configure memory limits
+# Configure memory limits for Node.js
 export NODE_OPTIONS="--max-old-space-size=512"
 
 # Start with PM2 using ts-node with transpile-only to skip type checking
