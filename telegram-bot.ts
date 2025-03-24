@@ -212,12 +212,12 @@ function formatItinerary(itinerary: any, agodaLink: string, flightLink: string):
   const budget = itinerary.budget;
   
   message += `✈️ *Flights*: ${budget.flights}\n`;
-  message += `[Click here to book flights](${flightLink})\n`;
-  message += `🚕 *Transportation*: ${budget.transportation}\n`;
+  message += `[Click here to book flights](${flightLink})\n\n`;
+  message += `🚕 *Transportation*: ${budget.transportation}\n\n`;
   message += `🏨 *Accommodation*: ${budget.accommodation}\n`;
-  message += `[Click here to book hotels](${agodaLink})\n`;
-  message += `🎡 *Activities*: ${budget.activities}\n`;
-  message += `🍽️ *Food*: ${budget.food}\n`;
+  message += `[Click here to book hotels](${agodaLink})\n\n`;
+  message += `🎡 *Activities*: ${budget.activities}\n\n`;
+  message += `🍽️ *Food*: ${budget.food}\n\n`;
   message += `💲 *Total*: ${budget.total}\n`;
   
   if (budget.not_enough_budget) {
