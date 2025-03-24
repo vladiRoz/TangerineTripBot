@@ -1,0 +1,73 @@
+#!/bin/bash
+
+# Ultra-minimal deploy script for very resource-constrained servers
+echo "Deploying TangerineBot in minimal mode..."
+
+# Create a permanent 1GB swap file
+echo "Setting up permanent swap space (1GB)..."
+if [ ! -f /swapfile ]; then
+  sudo fallocate -l 1G /swapfile
+  sudo chmod 600 /swapfile
+  sudo mkswap /swapfile
+  sudo swapon /swapfile
+  
+  # Make swap permanent
+  echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+  
+  echo "Swap space created and activated permanently."
+else
+  echo "Swap file already exists."
+  sudo swapon /swapfile 2>/dev/null || true
+fi
+
+# Configure swappiness
+echo "Configuring system memory management..."
+sudo sysctl vm.swappiness=60
+echo 'vm.swappiness=60' | sudo tee -a /etc/sysctl.conf
+
+# Update system packages
+echo "Updating system packages..."
+sudo apt update
+
+# Install Node.js if not installed (minimal approach)
+if ! command -v node &> /dev/null; then
+  echo "Installing Node.js..."
+  curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+  sudo apt install -y nodejs
+fi
+
+# Install global dependencies
+echo "Installing global dependencies..."
+sudo npm install -g pm2 ts-node typescript
+
+# Install only production dependencies to save memory
+echo "Installing production dependencies only..."
+npm install --production
+
+# Set environment to production
+export NODE_ENV=production
+
+# Start with PM2 using minimal settings
+echo "Starting the bot with PM2 in minimal mode..."
+pm2 delete telegram-bot 2>/dev/null || true
+
+# Configure very small memory limits
+export NODE_OPTIONS="--max-old-space-size=256"
+
+# Start with pm2 with minimal memory settings
+pm2 start telegram-bot.ts \
+  --interpreter ts-node \
+  --name "telegram-bot" \
+  --node-args="--no-warnings --optimize_for_size" \
+  --max-memory-restart 300M \
+  --env NODE_ENV=production
+
+# Save PM2 startup configuration
+echo "Saving PM2 configuration..."
+pm2 save
+
+# Setup PM2 to start on system boot
+echo "Setting up PM2 to start on system boot..."
+pm2 startup
+
+echo "Deployment complete! Use 'pm2 logs telegram-bot' to see logs." 
