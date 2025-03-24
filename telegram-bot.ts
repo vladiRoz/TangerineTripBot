@@ -759,10 +759,28 @@ bot.on('message', (msg) => {
       askCurrency(chatId);
       break;
     case 6: // Currency
-      session.tripData.currency = msg.text.trim() || 'USD';
-      session.step++;
-      console.log(`Updated step to ${session.step}, asking for number of adults`);
-      askNumberAdults(chatId);
+      const currencyInput = msg.text.trim();
+      console.log(`Currency input: "${currencyInput}"`);
+      
+      // Accept any input as currency
+      if (currencyInput && currencyInput.length > 0) {
+        // Use the converter if available but don't require it
+        const currencyCode = getCurrencyCode(currencyInput);
+        const finalCurrency = currencyCode || currencyInput;
+        
+        session.tripData.currency = finalCurrency;
+        session.step++;
+        
+        console.log(`Currency set to: "${finalCurrency}"`);
+        
+        // Send a confirmation message
+        bot.sendMessage(chatId, `Currency set to: *${finalCurrency}*`, { 
+          parse_mode: 'Markdown' 
+        }).then(() => {
+          console.log(`Updated step to ${session.step}, asking for number of adults`);
+          askNumberAdults(chatId);
+        });
+      }
       break;
     case 7: // Number of Adults
       const adultsInput = msg.text.trim();
@@ -1056,3 +1074,75 @@ bot.on('callback_query', (callbackQuery) => {
     }
   }
 });
+
+// Add this helper function after the imports
+// Simple currency code mapping (optional, will fall back to original input)
+function getCurrencyCode(input: string): string | null {
+  // Normalize input
+  const normalizedInput = input.trim().toUpperCase();
+  
+  // Map of common currency names/codes
+  const currencyMap: Record<string, string> = {
+    // Currency codes
+    'USD': 'USD',
+    'EUR': 'EUR',
+    'GBP': 'GBP',
+    'JPY': 'JPY',
+    'AUD': 'AUD',
+    'CAD': 'CAD',
+    'CHF': 'CHF',
+    'CNY': 'CNY',
+    'HKD': 'HKD',
+    'NZD': 'NZD',
+    'INR': 'INR',
+    'ILS': 'ILS',
+    'MXN': 'MXN',
+    'SGD': 'SGD',
+    'THB': 'THB',
+    'RUB': 'RUB',
+    'ZAR': 'ZAR',
+    'BRL': 'BRL',
+    
+    // Currency names
+    'DOLLAR': 'USD',
+    'US DOLLAR': 'USD',
+    'AMERICAN DOLLAR': 'USD',
+    'EURO': 'EUR',
+    'EUROS': 'EUR',
+    'POUND': 'GBP',
+    'BRITISH POUND': 'GBP',
+    'STERLING': 'GBP',
+    'YEN': 'JPY',
+    'JAPANESE YEN': 'JPY',
+    'AUSTRALIAN DOLLAR': 'AUD',
+    'AUD DOLLAR': 'AUD',
+    'AUSSIE DOLLAR': 'AUD',
+    'CANADIAN DOLLAR': 'CAD',
+    'CAD DOLLAR': 'CAD',
+    'SWISS FRANC': 'CHF',
+    'FRANC': 'CHF',
+    'YUAN': 'CNY',
+    'RENMINBI': 'CNY',
+    'CHINESE YUAN': 'CNY',
+    'HONG KONG DOLLAR': 'HKD',
+    'NEW ZEALAND DOLLAR': 'NZD',
+    'KIWI DOLLAR': 'NZD',
+    'RUPEE': 'INR',
+    'INDIAN RUPEE': 'INR',
+    'SHEKEL': 'ILS',
+    'ISRAELI SHEKEL': 'ILS',
+    'PESO': 'MXN',
+    'MEXICAN PESO': 'MXN',
+    'SINGAPORE DOLLAR': 'SGD',
+    'BAHT': 'THB',
+    'THAI BAHT': 'THB',
+    'RUBLE': 'RUB',
+    'RUSSIAN RUBLE': 'RUB',
+    'RAND': 'ZAR',
+    'SOUTH AFRICAN RAND': 'ZAR',
+    'REAL': 'BRL',
+    'BRAZILIAN REAL': 'BRL'
+  };
+  
+  return currencyMap[normalizedInput] || null;
+}
