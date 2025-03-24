@@ -195,7 +195,7 @@ function formatItinerary(itinerary: any, agodaLink: string, flightLink: string):
       const parts = day.split(':');
       const dayNumber = parts[0].trim();
       const dayText = parts.slice(1).join(':').trim();
-      message += `*${dayNumber}*: ${dayText}\n`;
+      message += `*${dayNumber}*: ${dayText}\n\n`;
     } else {
       // If no colon, just add the day as is
       message += `${day}\n`;
@@ -208,17 +208,17 @@ function formatItinerary(itinerary: any, agodaLink: string, flightLink: string):
     message += `${index + 1}. [${location}](${locationUrl})\n`;
   });
   
-  message += `\n💰 *BUDGET:*\n`;
+  message += `\n💰 *BUDGET:*\n\n`;
   const budget = itinerary.budget;
   
   message += `✈️ *Flights*: ${budget.flights}\n`;
-  message += `🔗 [Book flights](${flightLink})\n`;
+  message += `[Click here to book flights](${flightLink})\n`;
   message += `🚕 *Transportation*: ${budget.transportation}\n`;
   message += `🏨 *Accommodation*: ${budget.accommodation}\n`;
-  message += `🔗 [Book hotels](${agodaLink})\n`;
-  message += `🎭 *Activities*: ${budget.activities}\n`;
+  message += `[Click here to book hotels](${agodaLink})\n`;
+  message += `🎡 *Activities*: ${budget.activities}\n`;
   message += `🍽️ *Food*: ${budget.food}\n`;
-  message += `💵 *Total*: ${budget.total}\n`;
+  message += `💲 *Total*: ${budget.total}\n`;
   
   if (budget.not_enough_budget) {
     message += `\n⚠️ *NOTE:* The provided budget is not sufficient for this trip.\n`;
