@@ -28,6 +28,9 @@ echo 'vm.swappiness=60' | sudo tee -a /etc/sysctl.conf
 # Set environment to production
 export NODE_ENV=production
 
+# Set ts-node compiler options to bypass moduleResolution issues
+export TS_NODE_COMPILER_OPTIONS='{"module":"CommonJS","moduleResolution":"node"}'
+
 # Start with PM2 using minimal settings
 echo "Starting the bot with PM2 in minimal mode..."
 pm2 delete telegram-bot 2>/dev/null || true
@@ -41,7 +44,8 @@ pm2 start telegram-bot.ts \
   --name "telegram-bot" \
   --node-args="--transpile-only" \
   --max-memory-restart 400M \
-  --env NODE_ENV=production
+  --env NODE_ENV=production \
+  --env TS_NODE_COMPILER_OPTIONS='{"module":"CommonJS","moduleResolution":"node"}'
 
 # Save PM2 startup configuration
 echo "Saving PM2 configuration..."
