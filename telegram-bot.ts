@@ -291,7 +291,7 @@ function askDuration(chatId: number): void {
     ]
   };
 
-  bot.sendMessage(chatId, '2️⃣ What is your *trip duration* (number of days)?', { 
+  bot.sendMessage(chatId, '2️⃣ How many days will your trip be?', { 
     parse_mode: 'Markdown',
     reply_markup: inlineKeyboard
   })
@@ -337,7 +337,7 @@ function askTimeOfYear(chatId: number): void {
     ]
   };
 
-  bot.sendMessage(chatId, '3️⃣ What are your *season / month*?', { 
+  bot.sendMessage(chatId, '3️⃣ What is your preferred *season / month*?', { 
     parse_mode: 'Markdown',
     reply_markup: inlineKeyboard
   })
@@ -356,24 +356,28 @@ function askVacationStyle(chatId: number): void {
   const inlineKeyboard = {
     inline_keyboard: [
       [
-        { text: 'Family Trip', callback_data: 'style_Family Trip' },
-        { text: 'Romantic Getaway', callback_data: 'style_Romantic Getaway' }
+        { text: '👨‍👩‍👧‍👦 Family Trip', callback_data: 'style_Family Trip' },
+        { text: '💑 Romantic Getaway', callback_data: 'style_Romantic Getaway' }
       ],
       [
-        { text: 'Adventure', callback_data: 'style_Adventure' },
-        { text: 'Beach', callback_data: 'style_Beach' }
+        { text: '🌆 City', callback_data: 'style_City' },
+        { text: '🏖️ Beaches & Islands', callback_data: 'style_Beach&Islands' }
       ],
       [
-        { text: 'City', callback_data: 'style_City' },
-        { text: 'Cultural', callback_data: 'style_Cultural' }
+        { text: '🏺 Local Culture', callback_data: 'style_Cultural' },
+        { text: '🛍️ Shopping & Fashion', callback_data: 'style_Shopping&Fashion' }, 
       ],
       [
-        { text: 'Luxury', callback_data: 'style_Luxury' },
-        { text: 'Budget', callback_data: 'style_Budget' }
+        { text: '🦁 Nature & Wildlife', callback_data: 'style_Nature&Wildlife' },
+        { text: '🥾 Tracks & Hikes', callback_data: 'style_Tracks&Hikes' }
       ],
       [
-        { text: 'Nature', callback_data: 'style_Nature' },
-        { text: 'Food & Wine', callback_data: 'style_Food & Wine' }
+        { text: '🎡 Amusement Parks', callback_data: 'style_AmusementParks' },
+        { text: '🏂 Extreme Sports', callback_data: 'style_ExtremeSports' }
+      ],
+      [
+        { text: '🚗 Road trips', callback_data: 'style_RoadTrips' },
+        { text: '🎒 Backpackers', callback_data: 'style_Backpackers' }
       ],
       [
         { text: '✅ Done', callback_data: 'style_done' }
@@ -383,7 +387,7 @@ function askVacationStyle(chatId: number): void {
 
   bot.sendMessage(
     chatId, 
-    '4️⃣ What is your *vacation style*? Select one or more options:', 
+    '4️⃣ What experience are you looking for? (Select all that apply)', 
     { 
       parse_mode: 'Markdown',
       reply_markup: inlineKeyboard
@@ -400,7 +404,7 @@ function askVacationStyle(chatId: number): void {
 function askDepartureCity(chatId: number): void {
   console.log(`askDepartureCity called for chat ID ${chatId}`);
   
-  bot.sendMessage(chatId, '5️⃣ What is your *departure city*?', { parse_mode: 'Markdown' })
+  bot.sendMessage(chatId, '5️⃣ Where are you departing from?', { parse_mode: 'Markdown' })
     .then(message => {
       const session = userSessions.get(chatId);
       if (session) {
@@ -856,7 +860,7 @@ bot.on('callback_query', (callbackQuery) => {
     bot.answerCallbackQuery(callbackQuery.id, { text: `Selected: ${timeValue}` });
     
     // Update the message to show the selection
-    bot.editMessageText(`3️⃣ Travel time: *${timeValue}*`, {
+    bot.editMessageText(`3️⃣ Preferred timing: *${timeValue}*`, {
       chat_id: chatId,
       message_id: callbackQuery.message?.message_id,
       parse_mode: 'Markdown',
