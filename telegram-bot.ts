@@ -188,7 +188,7 @@ function formatItinerary(itinerary: any, agodaLink: string, flightLink: string):
   message += `\n🚌 *GETTING AROUND:*\n`;
   message += `${itinerary.getting_around}\n`;
   
-  message += `\n📅 *ITINERARY:*\n`;
+  message += `\n📅 *ITINERARY:*\n\n`;
   itinerary.sample_itinerary.forEach((day: string) => {
     // Check if the day contains a colon to separate day number from description
     if (day.includes(':')) {
