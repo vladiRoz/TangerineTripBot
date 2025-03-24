@@ -418,25 +418,29 @@ function askCurrency(chatId: number): void {
   const inlineKeyboard = {
     inline_keyboard: [
       [
-        { text: '💵 USD', callback_data: 'currency_USD' },
-        { text: '💶 EUR', callback_data: 'currency_EUR' }
-      ],
-      [
-        { text: '💷 GBP', callback_data: 'currency_GBP' },
-        { text: '💴 JPY', callback_data: 'currency_JPY' }
+        { text: '🇺🇸 USD', callback_data: 'currency_USD' },
+        { text: '🇪🇺 EUR', callback_data: 'currency_EUR' }
       ],
       [
         { text: '🇦🇺 AUD', callback_data: 'currency_AUD' },
-        { text: '🇨🇦 CAD', callback_data: 'currency_CAD' }
+        { text: '🇳🇿 NZD', callback_data: 'currency_NZD' }
       ],
       [
-        { text: '🇨🇭 CHF', callback_data: 'currency_CHF' },
+        { text: '🇬🇧 GBP', callback_data: 'currency_GBP' },
+        { text: '🇯🇵 JPY', callback_data: 'currency_JPY' }
+      ],
+      [
+        { text: '🇭🇰 HKD', callback_data: 'currency_HKD' },
         { text: '🇨🇳 CNY', callback_data: 'currency_CNY' }
       ],
       [
         { text: '🇮🇳 INR', callback_data: 'currency_INR' },
-        { text: '🇧🇷 BRL', callback_data: 'currency_BRL' }
-      ]
+        { text: '🇨🇦 CAD', callback_data: 'currency_CAD' }
+      ],
+      [
+        { text: '🇮🇱 ILS', callback_data: 'currency_ILS' },
+        { text: '🇨🇭 CHF', callback_data: 'currency_CHF' },
+      ],
     ]
   };
 
