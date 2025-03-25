@@ -209,10 +209,10 @@ export function buildAgodaFlightLink(tripData: Partial<TripDataRequest>): string
   params.append('returnDate', formatDate(returnDate));
   
   // Add passengers
-  params.append('adults', (tripData.numberAdults || 1).toString());
-  if (tripData.numberKids && tripData.numberKids > 0) {
-    params.append('children', tripData.numberKids.toString());
-  }
+  // params.append('adults', (tripData.numberAdults || 1).toString());
+  // if (tripData.numberKids && tripData.numberKids > 0) {
+    // params.append('children', tripData.numberKids.toString());
+  // }
   
   // Build the final URL
   return `https://www.agoda.com/flights/results?${params.toString()}`;
