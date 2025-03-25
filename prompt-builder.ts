@@ -1,7 +1,7 @@
 import { TripDataRequest } from "./interface";
 
 
-const UNKNOWN = 'unknown';
+export const UNKNOWN = 'unknown';
 
 const highlightsSection = `
     An array of string that includes a quick overview of geographical location, official language, key attractions, landmarks or activities.
