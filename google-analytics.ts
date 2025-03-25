@@ -88,4 +88,30 @@ export async function trackTripCompleted(clientId: string, destination: string, 
 
 export async function trackTripCancelled(clientId: string) {
   await trackEvent('trip_cancelled', clientId);
+}
+
+/**
+ * Track error events in Google Analytics
+ * @param clientId - Telegram user ID or "system" for non-user errors
+ * @param errorType - Category of error (e.g., "API", "UserInput")
+ * @param errorMessage - Actual error message
+ * @param errorLocation - Function or component where error occurred
+ * @param errorDetails - Additional error details (optional)
+ * @param isFatal - Whether error is critical (default: false)
+ */
+export async function trackError(
+  clientId: string,
+  errorType: string,
+  errorMessage: string,
+  errorLocation: string,
+  errorDetails: Record<string, any> = {},
+  isFatal: boolean = false
+) {
+  await trackEvent('error', clientId, {
+    error_type: errorType,
+    error_message: errorMessage?.substring(0, 500), // Limit message length
+    error_location: errorLocation,
+    ...errorDetails,
+    fatal: isFatal
+  });
 } 

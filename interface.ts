@@ -13,4 +13,5 @@ export interface TripDataRequest {
     luxuryLevel?: number,
     budget?: number,
     currency: string,
+    userId?: string,
 }
