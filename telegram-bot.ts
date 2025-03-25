@@ -5,6 +5,13 @@ import { TripDataRequest } from './interface';
 import fetch from 'node-fetch';
 import { buildAgodaAffiliateLink, buildAgodaFlightLink } from './agoda-affiliate';
 import { log } from 'console';
+import { 
+  trackQuestionAnswered, 
+  trackAgodaClick, 
+  trackTripStarted, 
+  trackTripCompleted, 
+  trackTripCancelled 
+} from './google-analytics';
 
 // Load environment variables
 config();
@@ -627,8 +634,42 @@ function removeKeyboard(chatId: number, messageText: string): void {
 // Handle /plan command (main entry point for trip planning)
 bot.onText(/\/plan/, (msg) => {
   const chatId = msg.chat.id;
-  // Remove any existing keyboard before starting new session
-  startNewSession(chatId);
+  const userId = msg.from?.id.toString() || 'unknown';
+  const session = userSessions.get(chatId);
+  
+  if (session) {
+    // Clear existing session
+    userSessions.delete(chatId);
+  }
+  
+  // Create new session
+  const newSession: UserSession = {
+    step: 1,
+    tripData: {
+      destination: '',
+      duration: '',
+      timeOfYear: '',
+      vacationStyle: [],
+      departureCity: '',
+      currency: '',
+      numberAdults: 0,
+      numberKids: 0,
+      luxuryLevel: undefined
+    },
+    messageIds: []
+  };
+  
+  userSessions.set(chatId, newSession);
+  
+  // Track trip started
+  trackTripStarted(userId);
+  
+  // Send welcome message
+  bot.sendMessage(chatId, 'Welcome to the Travel Planner! Let\'s plan your perfect trip. 🌍\n\n1️⃣ Where would you like to go?', { 
+    parse_mode: 'Markdown' 
+  }).then(message => {
+    newSession.messageIds.push(message.message_id);
+  });
 });
 
 // Handle /start command (welcome message)
@@ -708,6 +749,7 @@ bot.on('message', (msg) => {
   if (!msg.text || msg.text.startsWith('/')) return;
   
   const chatId = msg.chat.id;
+  const userId = msg.from?.id.toString() || 'unknown';
   const session = userSessions.get(chatId);
   
   if (!session) {
@@ -722,6 +764,7 @@ bot.on('message', (msg) => {
     case 1: // Destination
       session.tripData.destination = msg.text.trim() || UNKNOWN;
       session.tripData.suggestDestination = !msg.text.trim();
+      trackQuestionAnswered(userId, 1, session.tripData.destination);
       session.step++;
       console.log(`Updated step to ${session.step}, asking for duration`);
       askDuration(chatId);
@@ -732,6 +775,7 @@ bot.on('message', (msg) => {
         const duration = parseInt(durationInput, 10);
         if (!isNaN(duration) && duration > 0 && duration <= 100) {
           session.tripData.duration = `${duration} days`;
+          trackQuestionAnswered(userId, 2, session.tripData.duration);
           session.step++;
           console.log(`Updated step to ${session.step}, asking for time of year`);
           askTimeOfYear(chatId);
@@ -742,19 +786,22 @@ bot.on('message', (msg) => {
       break;
     case 3: // Time of Year
       session.tripData.timeOfYear = msg.text.trim() || UNKNOWN;
+      trackQuestionAnswered(userId, 3, session.tripData.timeOfYear);
       session.step++;
       console.log(`Updated step to ${session.step}, asking for vacation style`);
       askVacationStyle(chatId);
       break;
     case 4: // Vacation Style
       session.tripData.vacationStyle = msg.text.trim().split(',').map(style => style.trim());
+      trackQuestionAnswered(userId, 4, session.tripData.vacationStyle.join(', '));
       session.step++;
       console.log(`Updated step to ${session.step}, asking for departure city`);
       askDepartureCity(chatId);
       break;
     case 5: // Departure City
       session.tripData.departureCity = msg.text.trim();
-      session.step = 6; // Explicitly set to step 6
+      trackQuestionAnswered(userId, 5, session.tripData.departureCity);
+      session.step = 6;
       console.log(`Updated step to ${session.step}, asking for currency. Departure city set to: ${session.tripData.departureCity}`);
       askCurrency(chatId);
       break;
@@ -762,18 +809,16 @@ bot.on('message', (msg) => {
       const currencyInput = msg.text.trim();
       console.log(`Currency input: "${currencyInput}"`);
       
-      // Accept any input as currency
       if (currencyInput && currencyInput.length > 0) {
-        // Use the converter if available but don't require it
         const currencyCode = getCurrencyCode(currencyInput);
         const finalCurrency = currencyCode || currencyInput;
         
         session.tripData.currency = finalCurrency;
+        trackQuestionAnswered(userId, 6, finalCurrency);
         session.step++;
         
         console.log(`Currency set to: "${finalCurrency}"`);
         
-        // Send a confirmation message
         bot.sendMessage(chatId, `Currency set to: *${finalCurrency}*`, { 
           parse_mode: 'Markdown' 
         }).then(() => {
@@ -788,6 +833,7 @@ bot.on('message', (msg) => {
         const numberAdults = parseInt(adultsInput, 10);
         if (!isNaN(numberAdults) && numberAdults > 0 && numberAdults <= 20) {
           session.tripData.numberAdults = numberAdults;
+          trackQuestionAnswered(userId, 7, numberAdults.toString());
           session.step++;
           askNumberKids(chatId);
         } else {
@@ -801,6 +847,7 @@ bot.on('message', (msg) => {
         const numberKids = parseInt(kidsInput, 10);
         if (!isNaN(numberKids) && numberKids >= 0 && numberKids <= 20) {
           session.tripData.numberKids = numberKids;
+          trackQuestionAnswered(userId, 8, numberKids.toString());
           session.step++;
           askLuxuryLevel(chatId);
         } else {
@@ -811,12 +858,15 @@ bot.on('message', (msg) => {
     case 9: // Luxury Level
       const luxuryLevel = parseInt(msg.text.trim(), 10);
       session.tripData.luxuryLevel = isNaN(luxuryLevel) ? undefined : luxuryLevel;
+      trackQuestionAnswered(userId, 9, luxuryLevel.toString());
       session.step++;
       break;
     case 10: // Confirmation
       if (msg.text.trim().toUpperCase() === 'YES') {
+        trackTripCompleted(userId, session.tripData.destination, session.tripData.duration);
         generateItinerary(chatId);
       } else {
+        trackTripCancelled(userId);
         bot.sendMessage(chatId, 'Trip planning canceled. Use /plan to begin a new trip planning.');
         userSessions.delete(chatId);
       }
@@ -827,12 +877,28 @@ bot.on('message', (msg) => {
 // Handle callback queries from inline buttons
 bot.on('callback_query', (callbackQuery) => {
   const chatId = callbackQuery.message?.chat.id;
+  const userId = callbackQuery.from?.id.toString() || 'unknown';
   const data = callbackQuery.data;
   
   if (!chatId || !data) return;
   
   const session = userSessions.get(chatId);
   if (!session) return;
+  
+  // Track button clicks
+  if (data.startsWith('currency_')) {
+    const currency = data.split('_')[1];
+    trackQuestionAnswered(userId, 6, currency);
+  } else if (data.startsWith('month_') || data.startsWith('season_')) {
+    const timeOfYear = data.split('_')[1];
+    trackQuestionAnswered(userId, 3, timeOfYear);
+  } else if (data.startsWith('style_')) {
+    const style = data.split('_')[1];
+    trackQuestionAnswered(userId, 4, style);
+  } else if (data.startsWith('luxury_')) {
+    const level = data.split('_')[1];
+    trackQuestionAnswered(userId, 9, level);
+  }
   
   // Handle duration selection
   if (data.startsWith('duration_')) {
@@ -1146,3 +1212,23 @@ function getCurrencyCode(input: string): string | null {
   
   return currencyMap[normalizedInput] || null;
 }
+
+// Add click tracking for Agoda links
+bot.on('message', (msg) => {
+  if (!msg.entities) return;
+  
+  const userId = msg.from?.id.toString() || 'unknown';
+  
+  for (const entity of msg.entities) {
+    if (entity.type === 'text_link') {
+      const url = entity.url;
+      if (url.includes('agoda.com')) {
+        const destination = msg.text?.split('\n')[0].replace('🌍 *', '').replace('*', '') || '';
+        trackAgodaClick(userId, destination, 'hotel');
+      } else if (url.includes('flights')) {
+        const destination = msg.text?.split('\n')[0].replace('🌍 *', '').replace('*', '') || '';
+        trackAgodaClick(userId, destination, 'flight');
+      }
+    }
+  }
+});
