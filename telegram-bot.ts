@@ -621,12 +621,12 @@ async function generateItinerary(chatId: number): Promise<void> {
     // Generate prompt
     const prompt = createPrompt(tripData);
 
-    console.log('prompt', prompt);
+    // console.log('prompt', prompt);
     
     // Call OpenAI API
     const response = await callOpenAI(prompt);
 
-    console.log('response', response);
+    // console.log('response', response);
     
     // Parse the response
     const itinerary = parseResponse(response);
