@@ -776,23 +776,8 @@ I'm an AI-powered travel assistant that helps you plan your perfect trip based o
 2. Answer the questions about your travel preferences
 3. I'll generate a personalized travel itinerary for you
 
-*Travel preferences include:*
-Destination
-Trip Duration
-Travel Dates / Season / Month
-Vacation Style
-Departure City
-Currency
-Number of Adults
-Number of Children
-Preferred Hotel Rating
-
-*Error Reporting:*
-If you encounter any issues with the bot, you can:
-1. Try again with /cancel and then /plan
-2. Check if your input matches the expected format
-
-If you have any issues, please use /cancel and start again.
+*Contact us:*
+https://www.tangerinetrip.com/contact-us
 `;
   
   bot.sendMessage(chatId, helpMessage, { parse_mode: 'Markdown' });
